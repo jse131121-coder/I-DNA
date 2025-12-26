@@ -166,13 +166,24 @@
     document.getElementById('menuBtn').onclick = () => {
       menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
     };
+
     function show(id) {
       sections.forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       menu.style.display = 'none';
     }
+
     function openChat(name, status, icon) {
       show('chatRoom');
       document.getElementById('pfName').textContent = name;
       document.getElementById('pfStatus').textContent = status;
-      document.getElementById('
+      document.getElementById('pfIcon').textContent = icon;
+    }
+
+    function openGroupChat() {
+      show('groupChat');
+    }
+  </script>
+</body>
+</html>
+
