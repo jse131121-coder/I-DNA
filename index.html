@@ -4,186 +4,304 @@
   <meta charset="UTF-8" />
   <title>DIDNA</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- 구름고딕 웹폰트 -->
+  <!-- 구름고딕(고운돋움) -->
   <link href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.3/GowunDodum.css" rel="stylesheet" />
   <style>
-    body {
-      margin: 0;
-      font-family: 'GowunDodum', sans-serif;
-      background: #fffde7;
+    :root{
+      --bg:#fff9c4;         /* 사진의 노란 배경 느낌 */
+      --header:#fdd835;     /* 상단 DIDNA 바 */
+      --card:#fff3a3;       /* 멤버 카드 박스 */
+      --line:#333;
     }
-    header {
-      background: #fdd835;
-      padding: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:'GowunDodum', sans-serif;
+      background:var(--bg);
+      color:#111;
     }
-    #menuBtn {
-      font-size: 24px;
-      background: none;
-      border: none;
-      cursor: pointer;
+    /* 상단 헤더 (좌측 햄버거 + 가운데 DIDNA) */
+    header{
+      position:fixed; top:0; left:0; right:0;
+      height:56px; display:flex; align-items:center; justify-content:center;
+      background:var(--header); border-bottom:1px solid #e0c400;
+      z-index:10;
     }
-    #menu {
-      position: fixed;
-      top: 0; left: 0;
-      width: 70%; height: 100%;
-      background: #fff;
-      border-right: 2px solid #ccc;
-      padding: 20px;
-      display: none;
-      flex-direction: column;
-      gap: 12px;
+    header h1{margin:0; font-size:20px; letter-spacing:1px}
+    #menuBtn{
+      position:absolute; left:12px; top:50%; transform:translateY(-50%);
+      border:none; background:none; font-size:22px; cursor:pointer;
     }
-    #menu button {
-      font-size: 18px;
-      background: none;
-      border: none;
-      text-align: left;
-      padding: 8px;
-      cursor: pointer;
+    main{padding:72px 16px 24px}
+
+    /* 공통 섹션 토글 */
+    .section{display:none}
+    .section.active{display:block}
+
+    /* 첫 화면: 멤버 리스트 (사진 그대로 타이포 + 박스) */
+    .member-list{display:flex; flex-direction:column; gap:12px}
+    .member-card{
+      background:var(--card); border:1px solid #e6db6b;
+      border-radius:12px; padding:12px; cursor:pointer;
     }
-    main { padding: 20px; }
-    .section { display: none; }
-    .active { display: block; }
-    .member-list div {
-      background: #fff9c4;
-      margin-bottom: 12px;
-      padding: 12px;
-      border-radius: 12px;
-      cursor: pointer;
+    .member-card .en{font-weight:700; margin-bottom:6px}
+    .member-card .ko{font-size:14px}
+
+    /* 햄버거 메뉴 패널 (사진: MENU/CHAT/FEED 섹션 화면) */
+    #menuPanel{
+      position:fixed; top:0; left:0; bottom:0; width:78%;
+      background:#fff; border-right:2px solid #ccc;
+      display:none; flex-direction:column; z-index:20;
     }
-    .chat-bubble {
-      margin: 8px 0;
-      padding: 10px;
-      border-radius: 12px;
-      max-width: 70%;
+    .menu-header{
+      padding:14px 16px; border-bottom:1px solid #eee; background:#fafafa;
+      font-weight:700;
     }
-    .left { background: #e0f7fa; align-self: flex-start; }
-    .right { background: #ffe0b2; align-self: flex-end; }
-    .chat-box { display: flex; flex-direction: column; }
-    .profile {
-      display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+    .menu-tabs{display:flex; gap:8px; padding:12px 16px; border-bottom:1px solid #eee}
+    .menu-tab{
+      padding:8px 12px; border:1px solid #ddd; border-radius:8px; background:#fff; cursor:pointer;
+      font-weight:700;
     }
-    .pf-img {
-      width: 50px; height: 50px; border-radius: 50%;
-      background: #ffe082; display: flex; align-items: center; justify-content: center;
-      font-weight: bold;
+    .menu-body{padding:12px 16px; overflow:auto}
+
+    /* CHAT 리스트 (사진의 이모지+텍스트 그대로) */
+    .chat-list{display:flex; flex-direction:column; gap:10px}
+    .chat-item{
+      padding:10px 12px; border:1px solid #ddd; border-radius:10px; background:#fff; cursor:pointer;
+      display:flex; align-items:center; gap:8px;
     }
-    input, textarea {
-      width: 100%; margin: 6px 0; padding: 8px;
-      border: 1px solid #ccc; border-radius: 8px;
+    .chat-note{margin-top:18px; font-size:12px; color:#444}
+
+    /* FEED 화면 (리스트 형태의 고정 디자인) */
+    .feed-list{display:flex; flex-direction:column; gap:12px}
+    .feed-card{padding:12px; border:1px solid #ddd; border-radius:10px; background:#fff}
+
+    /* 멤버 채팅 (사진의 프로필 + 좌/우 말풍선) */
+    .profile{display:flex; align-items:center; gap:12px; margin-bottom:12px}
+    .pf-img{
+      width:46px; height:46px; border-radius:50%; background:#ffe082; display:flex; align-items:center; justify-content:center;
+      font-weight:700;
     }
-    button {
-      padding: 8px 12px; border: none; background: #fdd835;
-      border-radius: 8px; cursor: pointer;
+    .pf-meta{display:flex; flex-direction:column}
+    .pf-name{font-weight:700}
+    .pf-status{font-size:13px; color:#333}
+
+    .chat-box{display:flex; flex-direction:column; gap:12px}
+    .bubble{
+      max-width:78%; padding:10px; border-radius:12px; font-size:14px; line-height:1.45;
+    }
+    .bubble.left{align-self:flex-start; background:#e0f7fa; border:1px solid #b2ebf2}
+    .bubble.right{align-self:flex-end; background:#ffe0b2; border:1px solid #ffcc80}
+    .time{font-size:11px; color:#555; margin-top:4px; display:block}
+
+    /* 그룹 채팅 헤더 (LIVE ●) */
+    .live-header{font-weight:700; margin-bottom:8px}
+    .live-dot{color:#e53935; font-weight:900}
+
+    /* 글쓰기 (사진 6번 폼 그대로) */
+    .form{display:flex; flex-direction:column; gap:8px}
+    input[type="text"], textarea{
+      width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; background:#fff;
+    }
+    input[type="file"]{margin-top:4px}
+    .btn{padding:10px 12px; border:none; background:var(--header); border-radius:8px; cursor:pointer; font-weight:700}
+
+    /* PC 대응(반응형) */
+    @media(min-width:900px){
+      main{max-width:560px; margin:0 auto}
+      #menuPanel{width:360px}
     }
   </style>
 </head>
 <body>
+  <!-- 상단 DIDNA 헤더 -->
   <header>
+    <button id="menuBtn" aria-label="menu">☰</button>
     <h1>DIDNA</h1>
-    <button id="menuBtn">☰</button>
   </header>
 
-  <div id="menu">
-    <button onclick="show('chatList')">CHAT</button>
-    <button onclick="show('feedList')">FEED</button>
-    <button onclick="show('writeFeed')">글쓰기 (관리자/아티스트)</button>
-  </div>
+  <!-- 햄버거 메뉴 패널 (사진 2번 화면) -->
+  <aside id="menuPanel">
+    <div class="menu-header">MENU</div>
+    <div class="menu-tabs">
+      <button class="menu-tab" onclick="openMenuTab('CHAT')">CHAT</button>
+      <button class="menu-tab" onclick="openMenuTab('FEED')">FEED</button>
+    </div>
+    <div class="menu-body">
+      <!-- CHAT 섹션 (사진 2번) -->
+      <div id="menuCHAT" class="section active">
+        <div class="chat-list">
+          <div class="chat-item" onclick="openMemberChat('서별','⚫','I-DNA 첫째 새별이 만나러 가는 길')">🌐 서별 Chat</div>
+          <div class="chat-item" onclick="openMemberChat('은샘','👾','I-DNA 둘째 은샘이 만나러 가는 길')">👾 온샘 Chat</div>
+          <div class="chat-item" onclick="openMemberChat('예서','🐉','I-DNA 셋째 예서 만나러 가는 길')">🐉 예서 Chat</div>
+          <div class="chat-item" onclick="openMemberChat('수인','🍥','I-DNA 넷째 수인이 만나러 가는 길')">🍥 수인 Chat</div>
+          <div class="chat-item" onclick="openMemberChat('이서','🎀','I-DNA 막내 이서 만나러 가는 길')">🎀 이서 Chat</div>
+          <div class="chat-item" onclick="openGroupChat()">🎨 아이드나 Chat</div>
+        </div>
+        <div class="chat-note">기능은 계속 추가됩니다. 질문은 공식 큐리어스에 남겨주시길 바랍니다..</div>
+      </div>
+
+      <!-- FEED 섹션 (사진 2번) -->
+      <div id="menuFEED" class="section">
+        <div class="feed-list">
+          <div class="feed-card">
+            <div>🎨 아이드나 Feed</div>
+            <div>(제목) (올린 아티스트)</div>
+            <div>(내용 맛보기, 1,2문장)</div>
+            <div>(올린 사진) (사진 안 올렸으면 X)</div>
+          </div>
+          <div class="feed-card">
+            <div>🎈 공식 Feed</div>
+            <div>(제목) (운영팀)</div>
+            <div>(공지 내용)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
 
   <main>
-    <!-- 첫 화면 -->
+    <!-- 1. 첫 화면 (사진 1번) -->
     <section id="home" class="section active">
       <div class="member-list">
-        <div onclick="openChat('서별','I-DNA 첫째 새별이 만나러 가는 길','⚫')">SEOBYEOL</div>
-        <div onclick="openChat('은샘','I-DNA 둘째 은샘이 만나러 가는 길','👾')">EUNSAM</div>
-        <div onclick="openChat('예서','I-DNA 셋째 예서 만나러 가는 길','🐉')">YESEO</div>
-        <div onclick="openChat('수인','I-DNA 넷째 수인이 만나러 가는 길','🍥')">SOOIN</div>
-        <div onclick="openChat('이서','I-DNA 막내 이서 만나러 가는 길','🎀')">LEESEO</div>
+        <div class="member-card" onclick="openMemberChat('서별','⚫','I-DNA 첫째 새별이 만나러 가는 길')">
+          <div class="en">SEOBYEOL</div>
+          <div class="ko">I-DNA 첫째 새별이 만나러 가는 길</div>
+        </div>
+        <div class="member-card" onclick="openMemberChat('은샘','👾','I-DNA 둘째 은샘이 만나러 가는 길')">
+          <div class="en">EUNSAM</div>
+          <div class="ko">I-DNA 둘째 은샘이 만나러 가는 길</div>
+        </div>
+        <div class="member-card" onclick="openMemberChat('예서','🐉','I-DNA 셋째 예서 만나러 가는 길')">
+          <div class="en">YESEO</div>
+          <div class="ko">I-DNA 셋째 예서 만나러 가는 길</div>
+        </div>
+        <div class="member-card" onclick="openMemberChat('수인','🍥','I-DNA 넷째 수인이 만나러 가는 길')">
+          <div class="en">SOOIN</div>
+          <div class="ko">I-DNA 넷째 수인이 만나러 가는 길</div>
+        </div>
+        <div class="member-card" onclick="openMemberChat('이서','🎀','I-DNA 막내 이서 만나러 가는 길')">
+          <div class="en">LEESEO</div>
+          <div class="ko">I-DNA 막내 이서 만나러 가는 길</div>
+        </div>
       </div>
     </section>
 
-    <!-- CHAT 리스트 -->
-    <section id="chatList" class="section">
-      <div class="member-list">
-        <div onclick="openChat('서별','I-DNA 첫째 새별이 만나러 가는 길','⚫')">🌐 서별 Chat</div>
-        <div onclick="openChat('은샘','I-DNA 둘째 은샘이 만나러 가는 길','👾')">👾 온샘 Chat</div>
-        <div onclick="openChat('예서','I-DNA 셋째 예서 만나러 가는 길','🐉')">🐉 예서 Chat</div>
-        <div onclick="openChat('수인','I-DNA 넷째 수인이 만나러 가는 길','🍥')">🍥 수인 Chat</div>
-        <div onclick="openChat('이서','I-DNA 막내 이서 만나러 가는 길','🎀')">🎀 이서 Chat</div>
-        <div onclick="openGroupChat()">🎨 아이드나 Chat</div>
-      </div>
-    </section>
-
-    <!-- 멤버 채팅 -->
-    <section id="chatRoom" class="section">
+    <!-- 3. 멤버별 채팅 (사진 3번) -->
+    <section id="memberChat" class="section">
       <div class="profile">
-        <div class="pf-img" id="pfIcon">?</div>
-        <div>
-          <div id="pfName">이름</div>
-          <div id="pfStatus">상태 메시지</div>
+        <div class="pf-img" id="pfIcon">(아이콘)</div>
+        <div class="pf-meta">
+          <div class="pf-name" id="pfName">(멤버 이름)</div>
+          <div class="pf-status" id="pfStatus">(상태 메시지)</div>
         </div>
       </div>
       <div class="chat-box">
-        <div class="chat-bubble left">(멤버가 보내는 메세지)<br><small>(시간)</small></div>
-        <div class="chat-bubble right">(팬이 보내는 메세지)<br><small>(시간)</small></div>
+        <div class="bubble left">
+          (멤버가 보내는 메세지)<span class="time">(시간)</span>
+        </div>
+        <div class="bubble right">
+          (팬이 보내는 메세지)<span class="time">(시간)</span>
+        </div>
       </div>
     </section>
 
-    <!-- 아이드나 Chat -->
+    <!-- 4. 아이드나 Chat (사진 4번) -->
     <section id="groupChat" class="section">
-      <h3>LIVE ● 아이드나 Chat</h3>
+      <div class="live-header">LIVE <span class="live-dot">●</span> 아이드나 Chat</div>
       <div class="chat-box">
-        <div class="chat-bubble left">(아틴스타가 보내는 메세지)<br><small>(시간)</small></div>
-        <div class="chat-bubble right">(팬이 보내는 메세지)<br><small>(시간)</small></div>
+        <div class="bubble left">
+          (아틴스타가 보내는 메세지)<span class="time">(시간)</span>
+        </div>
+        <div class="bubble right">
+          (팬이 보내는 메세지)<span class="time">(시간)</span>
+        </div>
       </div>
     </section>
 
-    <!-- 피드 리스트 -->
-    <section id="feedList" class="section">
-      <h3>🎨 아이드나 Feed</h3>
-      <div>(제목) (올린 아티스트)<br>(내용 맛보기, 1,2문장)<br>(올린 사진)</div>
-      <h3>🎈 공식 Feed</h3>
-      <div>(제목) (운영팀)<br>(공지 내용)</div>
+    <!-- 5. 피드 올리는 창 (사진 5번) -->
+    <section id="feedUpload" class="section">
+      <div class="feed-card">
+        <div>(제목) (올린 아티스트)</div>
+        <div>(내용 맛보기, 1,2문장)</div>
+        <div>(올린 사진) (사진 안 올렸으면 X)</div>
+        <button class="btn" onclick="openWrite()">글쓰기</button>
+      </div>
     </section>
 
-    <!-- 글쓰기 창 -->
-    <section id="writeFeed" class="section">
-      <h3>글쓰기 (아티스트/관리자 전용)</h3>
-      <input placeholder="제목을 입력하세요" />
-      <textarea placeholder="내용을 입력하세요"></textarea>
-      <input placeholder="이름을 입력하세요" />
-      <input type="file" />
-      <button>업로드</button>
+    <!-- 6. 글쓰기 폼 (사진 6번) -->
+    <section id="writeForm" class="section">
+      <div class="form">
+        <div>DIDNA</div>
+        <input type="text" id="title" placeholder="제목을 입력하세요." />
+        <textarea id="content" rows="4" placeholder="내용을 입력하세요. (내용 길이따라 달라짐)"></textarea>
+        <input type="text" id="author" placeholder="이름을 입력하세요." />
+        <input type="file" id="photo" />
+        <button class="btn" onclick="submitPost()">업로드</button>
+      </div>
     </section>
+
+    <!-- 7. CHAT 탭에서 멤버들 프사 누르면 이동 (사진 7번 설명 반영) -->
+    <!-- 기능은 위 menuCHAT에서 각 항목 onclick으로 memberChat으로 연결됨 -->
   </main>
 
   <script>
-    const sections = document.querySelectorAll('.section');
-    const menu = document.getElementById('menu');
-    document.getElementById('menuBtn').onclick = () => {
-      menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
-    };
-
-    function show(id) {
-      sections.forEach(s => s.classList.remove('active'));
+    // 섹션 토글
+    const sections = Array.from(document.querySelectorAll('.section'));
+    function show(id){
+      sections.forEach(s=>s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
-      menu.style.display = 'none';
+      closeMenu();
     }
 
-    function openChat(name, status, icon) {
-      show('chatRoom');
-      document.getElementById('pfName').textContent = name;
-      document.getElementById('pfStatus').textContent = status;
-      document.getElementById('pfIcon').textContent = icon;
+    // 햄버거 메뉴 열고 닫기
+    const menuBtn = document.getElementById('menuBtn');
+    const menuPanel = document.getElementById('menuPanel');
+    menuBtn.addEventListener('click', ()=> {
+      menuPanel.style.display = (menuPanel.style.display === 'flex') ? 'none' : 'flex';
+      if(menuPanel.style.display === '') menuPanel.style.display = 'flex';
+    });
+    function closeMenu(){ menuPanel.style.display='none' }
+
+    // 메뉴 탭 전환 (MENU 화면 안에서 CHAT/FEED)
+    function openMenuTab(tab){
+      document.getElementById('menuCHAT').classList.toggle('active', tab==='CHAT');
+      document.getElementById('menuFEED').classList.toggle('active', tab==='FEED');
     }
 
-    function openGroupChat() {
+    // 멤버 채팅 열기 (괄호 = 변수 치환)
+    function openMemberChat(name, icon, status){
+      // 사진과 동일하게 보이되, 괄호 텍스트는 변수로 채움
+      document.getElementById('pfName').textContent = name;      // (멤버 이름)
+      document.getElementById('pfIcon').textContent = icon;      // (아이콘)
+      document.getElementById('pfStatus').textContent = status;  // (상태 메시지)
+      show('memberChat');
+    }
+
+    // 그룹 채팅 열기
+    function openGroupChat(){
       show('groupChat');
     }
+
+    // 글쓰기 화면 열기
+    function openWrite(){
+      show('writeForm');
+    }
+
+    // 업로드 더미 (기능 데모용)
+    function submitPost(){
+      alert('업로드가 완료되었습니다 (데모).');
+      show('feedUpload');
+    }
+
+    // 초기: 첫 화면
+    show('home');
   </script>
 </body>
 </html>
+
+
+
+     
+
 
