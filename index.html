@@ -5,39 +5,52 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AND,JIN</title>
   <style>
-    :root {--bg:#fff;--fg:#111;--muted:#666;--border:#e7e7e7;--accent:#f6f6f6;--radius:12px;--font:"Pretendard",sans-serif;}
-    body{margin:0;font-family:var(--font);background:var(--bg);color:var(--fg);}
-    .wrap{max-width:720px;margin:0 auto;padding:24px 16px 80px;}
-    .header{display:flex;justify-content:space-between;margin-bottom:24px;}
-    .brand{font-weight:700;font-size:18px;}
-    .sub{color:var(--muted);font-size:13px;}
-    .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px;}
-    .tab{border:1px solid var(--border);border-radius:var(--radius);padding:10px;background:#fff;}
-    .tab.active{background:var(--accent);font-weight:600;}
+    :root {--bg:#fff;--fg:#111;--muted:#666;--border:#e7e7e7;--accent:#f6f6f6;--radius:12px;--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",Arial,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:var(--font);background:var(--bg);color:var(--fg)}
+    .wrap{max-width:720px;margin:0 auto;padding:24px 16px 80px}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+    .brand{font-weight:700;font-size:18px}
+    .sub{color:var(--muted);font-size:13px}
+    .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px}
+    .tab{border:1px solid var(--border);border-radius:12px;padding:10px;background:#fff;cursor:pointer}
+    .tab.active{background:var(--accent);font-weight:600}
     .section{display:none}.section.active{display:block}
-    .card{border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:#fff;margin-bottom:16px;}
-    .card h3{margin:0 0 8px}
-    .form{display:grid;gap:10px}.row{display:grid;gap:6px}
-    input,textarea{border:1px solid var(--border);border-radius:10px;padding:10px}
-    .btn{padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:#fff}
+    .card{border:1px solid var(--border);border-radius:12px;padding:16px;background:#fff;margin-bottom:16px}
+    .card h3{margin:0 0 8px 0;font-size:16px}
+    .empty{color:var(--muted);font-size:14px}
+    .form{display:grid;gap:10px}
+    .row{display:grid;gap:6px}
+    label{font-size:13px;color:var(--muted)}
+    input,textarea{border:1px solid var(--border);border-radius:10px;padding:10px;background:#fff;font-size:14px}
+    textarea{resize:vertical;min-height:100px}
+    .actions{display:flex;gap:8px;justify-content:flex-end}
+    .btn{padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:14px;cursor:pointer}
     .btn.primary{background:#111;color:#fff;border-color:#111}
     .list{display:grid;gap:10px}
-    .item{border:1px solid var(--border);border-radius:10px;padding:12px}
-    .item-head{display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;color:var(--muted)}
-    .item-title{font-weight:600;font-size:15px}
+    .item{border:1px solid var(--border);border-radius:10px;padding:12px;background:#fff}
+    .item-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:13px;color:var(--muted)}
+    .item-title{font-weight:600;font-size:15px;margin-bottom:6px}
     .item-body{font-size:14px;white-space:pre-wrap}
-    .profile{display:grid;grid-template-columns:88px 1fr;gap:16px}
-    .avatar{width:88px;height:88px;border:1px solid var(--border);border-radius:14px;display:grid;place-items:center;background:#fafafa}
+    .item-actions{display:flex;gap:8px;margin-top:8px}
+    .profile{display:grid;grid-template-columns:88px 1fr;gap:16px;align-items:start}
+    .avatar{width:88px;height:88px;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:#fafafa;display:grid;place-items:center;font-size:12px;color:var(--muted)}
     .avatar img{width:100%;height:100%;object-fit:cover}
+    .toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#111;color:#fff;padding:8px 12px;border-radius:10px;font-size:13px;opacity:0;transition:.3s}
+    .toast.show{opacity:1}
   </style>
 </head>
 <body>
   <div class="wrap">
     <header class="header">
-      <div><div class="brand">AND,JIN</div><div class="sub">AINI · 로그인 필요한 기능은 껍데기만 구현</div></div>
+      <div>
+        <div class="brand">AND,JIN</div>
+        <div class="sub">AINI · 로그인 필요한 기능은 껍데기만 구현</div>
+      </div>
       <div class="sub">베타</div>
     </header>
-    <nav class="tabs">
+
+    <nav class="tabs" role="tablist">
       <button class="tab active" data-tab="home">홈</button>
       <button class="tab" data-tab="community">커뮤니티</button>
       <button class="tab" data-tab="chat">채팅</button>
@@ -51,13 +64,25 @@
         <div class="profile">
           <div class="avatar" id="avatarBox"><span>사진 없음</span></div>
           <div class="form">
-            <div class="row"><label>이름</label><input id="displayName"></div>
-            <div class="row"><label>프로필 사진 URL</label><input id="photoUrl"></div>
-            <div class="actions"><button class="btn" id="profileCancel">닫기</button><button class="btn primary" id="profileSave">저장</button></div>
+            <div class="row">
+              <label for="displayName">이름</label>
+              <input id="displayName" placeholder="표시 이름 입력" />
+            </div>
+            <div class="row">
+              <label for="photoUrl">프로필 사진 URL</label>
+              <input id="photoUrl" placeholder="https://... (Cloudinary 등)" />
+            </div>
+            <div class="actions">
+              <button class="btn" id="profileLoad">불러오기</button>
+              <button class="btn primary" id="profileSave">저장</button>
+            </div>
           </div>
         </div>
       </div>
-      <div class="card"><h3>AND,JIN AINI</h3><p class="empty">이메일/비번 로그인은 데모에서 미구현.</p></div>
+      <div class="card">
+        <h3>AND,JIN AINI</h3>
+        <p class="empty">이메일/비번 로그인은 별도 구현 필요.</p>
+      </div>
     </section>
 
     <!-- COMMUNITY -->
@@ -65,14 +90,17 @@
       <div class="card">
         <h3>COMMUNITY 글 작성</h3>
         <form class="form" id="communityForm">
-          <div class="row"><label>작성자</label><input id="writer"></div>
-          <div class="row"><label>제목</label><input id="title"></div>
-          <div class="row"><label>내용</label><textarea id="content"></textarea></div>
-          <div class="row"><label>사진 URL</label><input id="photo"></div>
+          <div class="row"><label for="writer">작성자</label><input id="writer" placeholder="작성자 이름" /></div>
+          <div class="row"><label for="title">제목</label><input id="title" placeholder="제목" /></div>
+          <div class="row"><label for="content">내용</label><textarea id="content" placeholder="내용을 입력하세요"></textarea></div>
+          <div class="row"><label for="photo">사진 URL (선택)</label><input id="photo" placeholder="https://..." /></div>
           <div class="actions"><button type="reset" class="btn">초기화</button><button type="submit" class="btn primary">등록</button></div>
         </form>
       </div>
-      <div class="card"><h3>COMMUNITY 목록</h3><div id="communityList" class="list"><p class="empty">아직 작성된 글이 없습니다.</p></div></div>
+      <div class="card">
+        <h3>COMMUNITY 목록</h3>
+        <div id="communityList" class="list"><p class="empty">아직 작성된 글이 없습니다.</p></div>
+      </div>
     </section>
 
     <!-- CHAT -->
@@ -80,11 +108,12 @@
       <div class="card">
         <h3>CHAT</h3>
         <div class="list" id="chatList"><p class="empty">메시지가 없습니다.</p></div>
-        <form class="form" id="chatForm">
-          <div class="row"><label>보내는 사람</label><input id="chatSender"></div>
-          <div class="row"><label>메시지</label><input id="chatText"></div>
+        <form class="form" id="chatForm" style="margin-top:12px;">
+          <div class="row"><label for="chatSender">보내는 사람</label><input id="chatSender" placeholder="이름" /></div>
+          <div class="row"><label for="chatText">메시지</label><input id="chatText" placeholder="메시지를 입력하세요" /></div>
           <div class="actions"><button type="submit" class="btn primary">send</button></div>
         </form>
+        <p class="sub" style="margin-top:8px;">소속사 전용(데모 → 실제): 누구나 입력 가능 설정, 필요시 RLS 조정</p>
       </div>
     </section>
 
@@ -93,29 +122,192 @@
       <div class="card">
         <h3>NOTICE 작성</h3>
         <form class="form" id="noticeForm">
-          <div class="row"><label>agency</label><input id="noticeAgency"></div>
-          <div class="row"><label>제목</label><input id="noticeTitle"></div>
-          <div class="row"><label>내용</label><textarea id="noticeBody"></textarea></div>
+          <div class="row"><label for="noticeAgency">agency</label><input id="noticeAgency" placeholder="소속사 / 발신 주체" /></div>
+          <div class="row"><label for="noticeTitle">제목</label><input id="noticeTitle" placeholder="공지 제목" /></div>
+          <div class="row"><label for="noticeBody">내용</label><textarea id="noticeBody" placeholder="공지 내용을 입력하세요"></textarea></div>
           <div class="actions"><button type="reset" class="btn">초기화</button><button type="submit" class="btn primary">등록</button></div>
         </form>
       </div>
-      <div class="card"><h3>NOTICE 목록</h3><div id="noticeList" class="list"><p class="empty">등록된 공지가 없습니다.</p></div></div>
+      <div class="card">
+        <h3>NOTICE 목록</h3>
+        <div id="noticeList" class="list"><p class="empty">등록된 공지가 없습니다.</p></div>
+      </div>
     </section>
   </div>
 
+  <!-- Supabase JS client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script>
-    const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
-    $$('.tab').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.tab;$$('.tab').forEach(b=>b.classList.toggle('active',b===btn));$$('.section').forEach(s=>s.classList.toggle('active',s.id===id));});
-    const profileKey='aj.profile';let profile=JSON.parse(localStorage.getItem(profileKey)||'{}');
-    function renderAvatar(){const box=$('#avatarBox');box.innerHTML=profile.photoUrl?`<img src="${profile.photoUrl}">`:'<span>사진 없음</span>';}
-    function loadProfile(){ $('#displayName').value=profile.displayName||''; $('#photoUrl').value=profile.photoUrl||''; renderAvatar();}
-    loadProfile();
-    $('#profileSave').onclick=()=>{profile.displayName=$('#displayName').value;profile.photoUrl=$('#photoUrl').value;localStorage.setItem(profileKey,JSON.stringify(profile));renderAvatar();};
-    $('#profileCancel').onclick=loadProfile;
+    // 1) Fill your Supabase credentials
+    const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR_ANON_PUBLIC_KEY';
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const communityKey='aj.community';let community=JSON.parse(localStorage.getItem(communityKey)||'[]');const communityList=$('#communityList');
-    function renderCommunity(){communityList.innerHTML='';if(!community.length){communityList.innerHTML='<p class="empty">아직 작성된 글이 없습니다.</p>';return;}
-      community.forEach((p,i)=>{const item=document.createElement('div');item.className='item';item.innerHTML=`<div class="item-head"><span>${p.writer||'익명'}</span><span>${new Date(p.createdAt).toLocaleString()}</span></div><div class="item-title">${p.title}</div><div class="item-body">${p.content
+    // 2) UI helpers
+    const $ = s => document.querySelector(s);
+    const $$ = s => Array.from(document.querySelectorAll(s));
+    const toast = (msg) => {
+      let t = document.querySelector('.toast');
+      if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+      t.textContent = msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1800);
+    };
+
+    // 3) Tabs
+    $$('.tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.tab;
+        $$('.tab').forEach(b => b.classList.toggle('active', b === btn));
+        $$('.section').forEach(s => s.classList.toggle('active', s.id === id));
+      });
+    });
+
+    // 4) Profiles (single latest row used)
+    async function loadProfile() {
+      const { data, error } = await db.from('profiles')
+        .select('*').order('created_at', { ascending: false }).limit(1);
+      if (error) { console.error(error); toast('프로필 불러오기 실패'); return; }
+      const p = data && data[0];
+      $('#displayName').value = p?.display_name || '';
+      $('#photoUrl').value = p?.photo_url || '';
+      renderAvatar(p?.photo_url);
+    }
+    function renderAvatar(url) {
+      const box = $('#avatarBox');
+      box.innerHTML = url ? `<img src="${url}" alt="프로필">` : '<span>사진 없음</span>';
+    }
+    async function saveProfile() {
+      const display_name = $('#displayName').value.trim();
+      const photo_url = $('#photoUrl').value.trim();
+      const { error } = await db.from('profiles').insert({ display_name, photo_url });
+      if (error) { console.error(error); toast('프로필 저장 실패'); return; }
+      toast('프로필 저장 완료'); loadProfile();
+    }
+    $('#profileLoad').addEventListener('click', loadProfile);
+    $('#profileSave').addEventListener('click', saveProfile);
+
+    // 5) Community
+    async function renderCommunity() {
+      const list = $('#communityList');
+      const { data, error } = await db.from('community_posts').select('*').order('created_at', { ascending: false });
+      if (error) { console.error(error); list.innerHTML = '<p class="empty">불러오기 실패</p>'; return; }
+      if (!data.length) { list.innerHTML = '<p class="empty">아직 작성된 글이 없습니다.</p>'; return; }
+      list.innerHTML = '';
+      data.forEach(row => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div class="item-head"><span>${escapeHtml(row.writer||'익명')}</span><span>${formatDate(row.created_at)}</span></div>
+          <div class="item-title">${escapeHtml(row.title)}</div>
+          <div class="item-body">${escapeHtml(row.content)}</div>
+          ${row.photo ? `<div style="margin-top:8px;"><img src="${row.photo}" alt="사진" style="max-width:100%;border-radius:10px;border:1px solid #eee;"></div>` : ''}
+          <div class="item-actions"><button class="btn" data-id="${row.id}">원글 삭제</button></div>
+        `;
+        list.appendChild(div);
+      });
+      list.querySelectorAll('button[data-id]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const { error } = await db.from('community_posts').delete().eq('id', btn.dataset.id);
+          if (error) { console.error(error); toast('삭제 실패'); return; }
+          toast('삭제 완료'); renderCommunity();
+        });
+      });
+    }
+    $('#communityForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const writer = $('#writer').value.trim();
+      const title = $('#title').value.trim();
+      const content = $('#content').value.trim();
+      const photo = $('#photo').value.trim();
+      if (!title || !content) { toast('제목/내용 필수'); return; }
+      const { error } = await db.from('community_posts').insert({ writer, title, content, photo });
+      if (error) { console.error(error); toast('등록 실패'); return; }
+      e.target.reset(); toast('등록 완료'); renderCommunity();
+    });
+
+    // 6) Chat
+    async function renderChat() {
+      const list = $('#chatList');
+      const { data, error } = await db.from('chat_messages').select('*').order('created_at', { ascending: false });
+      if (error) { console.error(error); list.innerHTML = '<p class="empty">불러오기 실패</p>'; return; }
+      if (!data.length) { list.innerHTML = '<p class="empty">메시지가 없습니다.</p>'; return; }
+      list.innerHTML = '';
+      data.forEach(row => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div class="item-head"><span>${escapeHtml(row.sender||'익명')}</span><span>${formatDate(row.created_at)}</span></div>
+          <div class="item-body">${escapeHtml(row.text)}</div>
+          <div class="item-actions"><button class="btn" data-id="${row.id}">삭제</button></div>
+        `;
+        list.appendChild(div);
+      });
+      list.querySelectorAll('button[data-id]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const { error } = await db.from('chat_messages').delete().eq('id', btn.dataset.id);
+          if (error) { console.error(error); toast('삭제 실패'); return; }
+          toast('삭제 완료'); renderChat();
+        });
+      });
+    }
+    $('#chatForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const sender = $('#chatSender').value.trim();
+      const text = $('#chatText').value.trim();
+      if (!text) { toast('메시지 입력'); return; }
+      const { error } = await db.from('chat_messages').insert({ sender, text });
+      if (error) { console.error(error); toast('전송 실패'); return; }
+      e.target.reset(); toast('전송 완료'); renderChat();
+    });
+
+    // 7) Notices
+    async function renderNotice() {
+      const list = $('#noticeList');
+      const { data, error } = await db.from('notices').select('*').order('created_at', { ascending: false });
+      if (error) { console.error(error); list.innerHTML = '<p class="empty">불러오기 실패</p>'; return; }
+      if (!data.length) { list.innerHTML = '<p class="empty">등록된 공지가 없습니다.</p>'; return; }
+      list.innerHTML = '';
+      data.forEach(row => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div class="item-head"><span>${escapeHtml(row.agency||'agency')}</span><span>${formatDate(row.created_at)}</span></div>
+          <div class="item-title">${escapeHtml(row.title)}</div>
+          <div class="item-body">${escapeHtml(row.body)}</div>
+          <div class="item-actions"><button class="btn" data-id="${row.id}">전체 삭제</button></div>
+        `;
+        list.appendChild(div);
+      });
+      list.querySelectorAll('button[data-id]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const { error } = await db.from('notices').delete().eq('id', btn.dataset.id);
+          if (error) { console.error(error); toast('삭제 실패'); return; }
+          toast('삭제 완료'); renderNotice();
+        });
+      });
+    }
+    $('#noticeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const agency = $('#noticeAgency').value.trim();
+      const title = $('#noticeTitle').value.trim();
+      const body = $('#noticeBody').value.trim();
+      if (!title || !body) { toast('제목/내용 필수'); return; }
+      const { error } = await db.from('notices').insert({ agency, title, body });
+      if (error) { console.error(error); toast('등록 실패'); return; }
+      e.target.reset(); toast('등록 완료'); renderNotice();
+    });
+
+    // 8) Utils + initial load
+    function escapeHtml(str){return (str||'').replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]))}
+    function formatDate(d){try{return new Date(d).toLocaleString()}catch{return ''}}
+    async function init(){
+      await Promise.all([renderCommunity(), renderChat(), renderNotice()]);
+      loadProfile();
+    }
+    init();
+  </script>
+  <div class="toast" aria-hidden="true"></div>
+</body>
+</html>
 
                                                                                                                                                                     
                                                                                                                                                                                                                                                                                                  
