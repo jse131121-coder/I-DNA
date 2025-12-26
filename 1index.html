@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>DIDNA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Pretendard', sans-serif;
+      background: #fffde7;
+    }
+    header {
+      background: #fdd835;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #menuBtn {
+      font-size: 24px;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    #menu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 70%;
+      height: 100%;
+      background: #fff;
+      border-right: 2px solid #ccc;
+      padding: 20px;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+    #menu button {
+      font-size: 16px;
+      background: none;
+      border: none;
+      text-align: left;
+      padding: 8px;
+      cursor: pointer;
+    }
+    main {
+      padding: 20px;
+    }
+    .section {
+      display: none;
+    }
+    .active {
+      display: block;
+    }
+    .member-list div {
+      background: #fff9c4;
+      margin-bottom: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    .chat-bubble {
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 12px;
+      max-width: 70%;
+    }
+    .left { background: #e0f7fa; align-self: flex-start; }
+    .right { background: #ffe0b2; align-self: flex-end; }
+    .chat-box {
+      display: flex;
+      flex-direction: column;
+    }
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .pf-img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #ffe082;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      margin: 6px 0;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      padding: 8px 12px;
+      border: none;
+      background: #fdd835;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>DIDNA</h1>
+    <button id="menuBtn">☰</button>
+  </header>
+
+  <div id="menu">
+    <button onclick="show('chatList')">CHAT</button>
+    <button onclick="show('feedList')">FEED</button>
+    <button onclick="show('writeFeed')">글쓰기 (관리자/아티스트)</button>
+  </div>
+
+  <main>
+    <!-- 첫 화면 -->
+    <section id="home" class="section active">
+      <div class="member-list">
+        <div onclick="openChat('서별','I-DNA 첫째 새별이 만나러 가는 길','⚫')">SEOBYEOL</div>
+        <div onclick="openChat('은샘','I-DNA 둘째 은샘이 만나러 가는 길','👾')">EUNSAM</div>
+        <div onclick="openChat('예서','I-DNA 셋째 예서 만나러 가는 길','🐉')">YESEO</div>
+        <div onclick="openChat('수인','I-DNA 넷째 수인이 만나러 가는 길','🍥')">SOOIN</div>
+        <div onclick="openChat('이서','I-DNA 막내 이서 만나러 가는 길','🎀')">LEESEO</div>
+      </div>
+    </section>
+
+    <!-- CHAT 리스트 -->
+    <section id="chatList" class="section">
+      <div class="member-list">
+        <div onclick="openChat('서별','I-DNA 첫째 새별이 만나러 가는 길','⚫')">🌐 서별 Chat</div>
+        <div onclick="openChat('은샘','I-DNA 둘째 은샘이 만나러 가는 길','👾')">👾 온샘 Chat</div>
+        <div onclick="openChat('예서','I-DNA 셋째 예서 만나러 가는 길','🐉')">🐉 예서 Chat</div>
+        <div onclick="openChat('수인','I-DNA 넷째 수인이 만나러 가는 길','🍥')">🍥 수인 Chat</div>
+        <div onclick="openChat('이서','I-DNA 막내 이서 만나러 가는 길','🎀')">🎀 이서 Chat</div>
+        <div onclick="openGroupChat()">🎨 아이드나 Chat</div>
+      </div>
+    </section>
+
+    <!-- 멤버 채팅 -->
+    <section id="chatRoom" class="section">
+      <div class="profile">
+        <div class="pf-img" id="pfIcon">?</div>
+        <div>
+          <div id="pfName">이름</div>
+          <div id="pfStatus">상태 메시지</div>
+        </div>
+      </div>
+      <div class="chat-box">
+        <div class="chat-bubble left">(야틴 슈투가 보내는 메세지)<br><small>(시간)</small></div>
+        <div class="chat-bubble right">(팬이 보내는 메세지)<br><small>(시간)</small></div>
+      </div>
+    </section>
+
+    <!-- 아이드나 Chat -->
+    <section id="groupChat" class="section">
+      <h3>LIVE ● 아이드나 Chat</h3>
+      <div class="chat-box">
+        <div class="chat-bubble left">(아틴스타가 보내는 메세지)<br><small>(시간)</small></div>
+        <div class="chat-bubble right">(팬이 보내는 메세지)<br><small>(시간)</small></div>
+      </div>
+    </section>
+
+    <!-- 피드 리스트 -->
+    <section id="feedList" class="section">
+      <h3>🎨 아이드나 Feed</h3>
+      <div>(제목) (올린 아티스트)<br>(내용 맛보기, 1,2문장)<br>(올린 사진)</div>
+      <h3>🎈 공식 Feed</h3>
+      <div>(제목) (운영팀)<br>(공지 내용)</div>
+    </section>
+
+    <!-- 글쓰기 창 -->
+    <section id="writeFeed" class="section">
+      <h3>글쓰기 (아티스트/관리자 전용)</h3>
+      <input placeholder="제목을 입력하세요" />
+      <textarea placeholder="내용을 입력하세요"></textarea>
+      <input placeholder="이름을 입력하세요" />
+      <input type="file" />
+      <button>업로드</button>
+    </section>
+  </main>
+
+  <script>
+    const sections = document.querySelectorAll('.section');
+    const menu = document.getElementById('menu');
+    document.getElementById('menuBtn').onclick = () => {
+      menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+    };
+    function show(id) {
+      sections.forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      menu.style.display = 'none';
+    }
+    function openChat(name, status, icon) {
+      show('chatRoom');
+      document.getElementById('pfName').textContent = name;
+      document.getElementById('pfStatus').textContent = status;
+      document.getElementById('pfIcon').textContent = icon;
+    }
+    function openGroup
