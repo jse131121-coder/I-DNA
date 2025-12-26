@@ -131,7 +131,93 @@
       menu.style.display = 'none';
       updateAccess();
     }
-    function openChat(name
+    function openChat(name, icon, status) {
+      document.getElementById('pfName').value = name;
+      document.getElementById('pfIcon').textContent = icon;
+      document.getElementById('pfStatus').value = status;
+      show('chatRoom');
+    }
+
+    function openGroupChat() {
+      show('groupChat');
+    }
+
+    function sendMessage() {
+      const text = document.getElementById('chatMessage').value.trim();
+      if (!text) return;
+      if (!loggedIn) {
+        alert("로그인 후 답변이 표시됩니다.");
+        document.getElementById('chatMessage').value = '';
+        return;
+      }
+      const time = new Date().toLocaleTimeString();
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble right';
+      bubble.innerHTML = text + '<br><span>(' + time + ')</span>';
+      document.getElementById('chatBox').appendChild(bubble);
+      document.getElementById('chatMessage').value = '';
+    }
+
+    function sendGroupMessage() {
+      const text = document.getElementById('groupMessage').value.trim();
+      if (!text) return;
+      if (!loggedIn) {
+        alert("로그인 후 답변이 표시됩니다.");
+        document.getElementById('groupMessage').value = '';
+        return;
+      }
+      const time = new Date().toLocaleTimeString();
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble right';
+      bubble.innerHTML = text + '<br><span>(' + time + ')</span>';
+      document.getElementById('groupBox').appendChild(bubble);
+      document.getElementById('groupMessage').value = '';
+    }
+
+    function submitPost() {
+      if (!loggedIn) {
+        alert("로그인 후 이용 가능합니다.");
+        return;
+      }
+      alert("업로드 완료 (데모)");
+      show('feedList');
+    }
+
+    function login() {
+      const id = document.getElementById('loginId').value.trim();
+      const pw = document.getElementById('loginPw').value.trim();
+      const status = document.getElementById('loginStatus');
+      if (id === "I-DNA" && pw === "01012345678") {
+        loggedIn = true;
+        status.textContent = "로그인 성공!";
+        show('home');
+      } else {
+        loggedIn = false;
+        status.textContent = "로그인 실패!";
+      }
+      updateAccess();
+    }
+
+    function updateAccess() {
+      // 글쓰기 버튼은 로그인해야 활성화
+      const uploadBtn = document.getElementById('uploadBtn');
+      if (uploadBtn) {
+        uploadBtn.disabled = !loggedIn;
+        uploadBtn.classList.toggle('disabled', !loggedIn);
+      }
+      // 채팅 입력창은 항상 가능하지만, 비로그인은 버블 생성 안 됨
+      const chatMsg = document.getElementById('chatMessage');
+      const groupMsg = document.getElementById('groupMessage');
+      if (chatMsg) chatMsg.placeholder = loggedIn ? "(팬이 보내는 메세지)" : "(팬이 보내는 메세지) - 로그인 필요";
+      if (groupMsg) groupMsg.placeholder = loggedIn ? "(팬이 보내는 메세지)" : "(팬이 보내는 메세지) - 로그인 필요";
+    }
+
+    // 초기 화면
+    show('home');
+  </script>
+</body>
+</html>
+
 
 
 
