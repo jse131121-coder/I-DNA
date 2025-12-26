@@ -1,149 +1,241 @@
-import streamlit as st
-import json, os
-from datetime import datetime
-from streamlit_autorefresh import st_autorefresh
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #fffef6;
+    }
+    .app {
+      max-width: 420px;
+      margin: auto;
+      padding: 16px;
+    }
+    .login {
+      margin-top: 40px;
+    }
+    input, button, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    button {
+      background: #ffe48a;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    h1 {
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+    .block {
+      background: #fff4c2;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+    .pf {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #ddd;
+    }
+    .artist {
+      color: #c79a00;
+      font-weight: 700;
+    }
+    .msg {
+      background: white;
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-top: 6px;
+    }
+    .reply {
+      margin-left: 46px;
+      margin-top: 6px;
+      background: #fff1a8;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+    .time {
+      font-size: 11px;
+      color: #777;
+      margin-top: 4px;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+<div class="app">
 
-st.set_page_config(page_title="Community", layout="centered")
+  <!-- LOGIN -->
+  <div id="login" class="login">
+    <h1>LOGIN</h1>
+    <input id="loginId" placeholder="ID" />
+    <input id="loginPw" type="password" placeholder="PASSWORD" />
+    <button onclick="login()">ENTER</button>
+  </div>
 
-# ======================
-# AUTO REFRESH (5초)
-# ======================
-st_autorefresh(interval=5000, key="refresh")
+  <!-- COMMUNITY -->
+  <div id="community" class="hidden">
+    <h1>COMMUNITY</h1>
 
-# ======================
-# STYLE (모바일 + 연노랑)
-# ======================
-st.markdown("""
-<style>
-body { background:#fffef6; }
-.app { max-width:420px; margin:auto; }
-.block { background:#fff4c2; padding:12px; border-radius:14px; margin-bottom:14px; }
-.row { display:flex; gap:10px; align-items:flex-start; }
-.pf { width:36px; height:36px; border-radius:50%; }
-.name { font-weight:700; }
-.artist { color:#c79a00; }
-.msg { background:white; padding:10px 12px; border-radius:12px; margin-top:6px; }
-.reply { background:#fff1a8; padding:8px 10px; border-radius:10px; margin-left:46px; font-size:0.9em; }
-.time { font-size:0.7em; color:#777; margin-top:4px; }
-input, textarea { border-radius:10px !important; }
-</style>
-""", unsafe_allow_html=True)
+    <div id="artistInput" class="hidden">
+      <textarea id="artistText" placeholder="메시지 입력"></textarea>
+      <button onclick="postMessage()">SEND</button>
+    </div>
 
-# ======================
-# UTIL
-# ======================
-def load(path, default):
-    if not os.path.exists(path):
-        return default
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    <div id="feed"></div>
+  </div>
 
-def save(path, data):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+</div>
 
-users = load("data/users.json", {})
-messages = load("data/messages.json", [])
+<script>
+/* =====================
+   MOCK MEMBERSHIP DATA
+===================== */
+const users = {
+  "arin": { pw: "1234", role: "artist", name: "BAEK ARIN" },
+  "yerin": { pw: "1234", role: "artist", name: "BAEK YE RIN" },
+  "fan01": { pw: "1111", role: "fan", name: "fan01" }
+};
 
-# ======================
-# LOGIN
-# ======================
-if "login" not in st.session_state:
-    st.session_state.login = False
+let currentUser = null;
+let messages = JSON.parse(localStorage.getItem("messages") || "[]");
 
-if not st.session_state.login:
-    st.markdown("<div class='app'>", unsafe_allow_html=True)
-    st.title("LOGIN")
-    uid = st.text_input("ID")
-    pw = st.text_input("PASSWORD", type="password")
+/* =====================
+   LOGIN
+===================== */
+function login() {
+  const id = loginId.value;
+  const pw = loginPw.value;
+  if (users[id] && users[id].pw === pw) {
+    currentUser = users[id];
+    loginBox(false);
+    if (currentUser.role === "artist") {
+      document.getElementById("artistInput").classList.remove("hidden");
+    }
+    render();
+  } else {
+    alert("로그인 실패");
+  }
+}
 
-    if st.button("ENTER"):
-        if uid in users and users[uid]["password"] == pw:
-            st.session_state.login = True
-            st.session_state.uid = uid
-            st.session_state.user = users[uid]
-            st.experimental_rerun()
-        else:
-            st.error("로그인 실패")
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.stop()
+function loginBox(show) {
+  document.getElementById("login").classList.toggle("hidden", !show);
+  document.getElementById("community").classList.toggle("hidden", show);
+}
 
-me = st.session_state.user
+/* =====================
+   POST MESSAGE
+===================== */
+function postMessage() {
+  const text = artistText.value.trim();
+  if (!text) return;
+  messages.unshift({
+    author: currentUser.name,
+    role: "artist",
+    text,
+    time: new Date().toLocaleString(),
+    comments: []
+  });
+  artistText.value = "";
+  save();
+  render();
+}
 
-# ======================
-# MAIN
-# ======================
-st.markdown("<div class='app'>", unsafe_allow_html=True)
-st.title("COMMUNITY")
+function postComment(i, input) {
+  const text = input.value.trim();
+  if (!text) return;
+  messages[i].comments.push({ author: currentUser.name, text });
+  save();
+  render();
+}
 
-# 아티스트 채팅 입력
-if me["role"] == "artist":
-    txt = st.text_area("메시지 입력", height=80)
-    if st.button("SEND"):
-        messages.insert(0, {
-            "author": me["display"],
-            "profile": me["profile"],
-            "role": "artist",
-            "text": txt,
-            "time": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "comments": []
-        })
-        save("data/messages.json", messages)
-        st.experimental_rerun()
+function postReply(i, j, input) {
+  const text = input.value.trim();
+  if (!text) return;
+  messages[i].comments[j].reply = {
+    author: currentUser.name,
+    text
+  };
+  save();
+  render();
+}
 
-# ======================
-# MESSAGE LOOP
-# ======================
-for i, m in enumerate(messages):
-    st.markdown(f"""
-    <div class="block">
+function save() {
+  localStorage.setItem("messages", JSON.stringify(messages));
+}
+
+/* =====================
+   RENDER
+===================== */
+function render() {
+  const feed = document.getElementById("feed");
+  feed.innerHTML = "";
+
+  messages.forEach((m, i) => {
+    const block = document.createElement("div");
+    block.className = "block";
+
+    block.innerHTML = `
       <div class="row">
-        <img class="pf" src="{m['profile']}">
+        <div class="pf"></div>
         <div>
-          <div class="name artist">★ {m['author']}</div>
-          <div class="msg">{m['text']}</div>
-          <div class="time">{m['time']}</div>
+          <div class="artist">★ ${m.author}</div>
+          <div class="msg">${m.text}</div>
+          <div class="time">${m.time}</div>
         </div>
       </div>
-    </div>
-    """, unsafe_allow_html=True)
+    `;
 
-    # 댓글
-    for j, c in enumerate(m["comments"]):
-        st.markdown(f"""
-        <div class="row">
-          <img class="pf" src="{c['profile']}">
-          <div class="msg">{c['author']} : {c['text']}</div>
-        </div>
-        """, unsafe_allow_html=True)
+    m.comments.forEach((c, j) => {
+      const cDiv = document.createElement("div");
+      cDiv.innerHTML = `<div class="msg">${c.author} : ${c.text}</div>`;
+      block.appendChild(cDiv);
 
-        if "reply" in c:
-            st.markdown(f"""
-            <div class="reply">★ {c['reply']['author']} : {c['reply']['text']}</div>
-            """, unsafe_allow_html=True)
+      if (c.reply) {
+        const rDiv = document.createElement("div");
+        rDiv.className = "reply";
+        rDiv.innerText = `★ ${c.reply.author} : ${c.reply.text}`;
+        block.appendChild(rDiv);
+      } else if (currentUser.role === "artist") {
+        const rInput = document.createElement("input");
+        rInput.placeholder = "대댓글";
+        rInput.onkeydown = e => {
+          if (e.key === "Enter") postReply(i, j, rInput);
+        };
+        block.appendChild(rInput);
+      }
+    });
 
-        if me["role"] == "artist" and "reply" not in c:
-            r = st.text_input("대댓글", key=f"r_{i}_{j}")
-            if st.button("답글", key=f"rb_{i}_{j}"):
-                c["reply"] = {
-                    "author": me["display"],
-                    "text": r
-                }
-                save("data/messages.json", messages)
-                st.experimental_rerun()
+    const input = document.createElement("input");
+    input.placeholder = "댓글";
+    input.onkeydown = e => {
+      if (e.key === "Enter") postComment(i, input);
+    };
+    block.appendChild(input);
 
-    # 팬 댓글
-    cmt = st.text_input("댓글", key=f"c_{i}")
-    if st.button("등록", key=f"cb_{i}"):
-        m["comments"].append({
-            "author": me["display"],
-            "profile": me["profile"],
-            "text": cmt
-        })
-        save("data/messages.json", messages)
-        st.experimental_rerun()
-
-st.markdown("</div>", unsafe_allow_html=True)
+    feed.appendChild(block);
+  });
+}
+</script>
+</body>
+</html>
 
 
                                                                                                                                                                     
