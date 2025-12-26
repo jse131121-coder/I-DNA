@@ -146,7 +146,7 @@
       show('groupChat');
     }
 
-   function sendMessage() {
+    function sendMessage() {
       const text = document.getElementById('chatMessage').value.trim();
       if (!text) return;
       if (!loggedIn) {
@@ -156,18 +156,11 @@
       }
       const time = new Date().toLocaleTimeString();
       const bubble = document.createElement('div');
-      bubble.className = 'bubble right';
+      // 로그인 상태에서는 팬 메시지도 왼쪽 말풍선으로 표시
+      bubble.className = 'bubble left';
       bubble.innerHTML = text + '<br><span>(' + time + ')</span>';
       document.getElementById('chatBox').appendChild(bubble);
       document.getElementById('chatMessage').value = '';
-
-      // 로그인 상태일 때 멤버 답변 자동 추가 (왼쪽 말풍선)
-      setTimeout(() => {
-        const reply = document.createElement('div');
-        reply.className = 'bubble left';
-        reply.innerHTML = "(멤버 답변) " + text + " 👍<br><span>(" + new Date().toLocaleTimeString() + ")</span>";
-        document.getElementById('chatBox').appendChild(reply);
-      }, 1500);
     }
 
     function sendGroupMessage() {
@@ -180,18 +173,10 @@
       }
       const time = new Date().toLocaleTimeString();
       const bubble = document.createElement('div');
-      bubble.className = 'bubble right';
+      bubble.className = 'bubble left';
       bubble.innerHTML = text + '<br><span>(' + time + ')</span>';
       document.getElementById('groupBox').appendChild(bubble);
       document.getElementById('groupMessage').value = '';
-
-      // 그룹 답변 자동 추가 (왼쪽 말풍선)
-      setTimeout(() => {
-        const reply = document.createElement('div');
-        reply.className = 'bubble left';
-        reply.innerHTML = "(아이드나 답변) " + text + " 💬<br><span>(" + new Date().toLocaleTimeString() + ")</span>";
-        document.getElementById('groupBox').appendChild(reply);
-      }, 1500);
     }
 
     function submitPost() {
@@ -235,7 +220,6 @@
         uploadBtn.disabled = !loggedIn;
         uploadBtn.classList.toggle('disabled', !loggedIn);
       }
-      // 채팅 입력창은 항상 가능하지만, 비로그인은 버블 생성 안 됨
       const chatMsg = document.getElementById('chatMessage');
       const groupMsg = document.getElementById('groupMessage');
       if (chatMsg) chatMsg.placeholder = loggedIn ? "(팬이 보내는 메세지)" : "(팬이 보내는 메세지) - 로그인 필요";
