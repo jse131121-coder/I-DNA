@@ -19,6 +19,7 @@
     .reply { margin-left:16px; font-size:13px; color:#555; }
     .actions { display:flex; gap:6px; margin-top:6px; }
     .avatar { width:28px; height:28px; border-radius:50%; vertical-align:middle; margin-right:6px; object-fit:cover; }
+    .inline { display:flex; gap:6px; }
   </style>
 </head>
 <body>
@@ -56,7 +57,7 @@
 </div>
 
 <script>
-/* ===== DATA ===== */
+/* ===== DATA (기존 계정/게시글 유지됨) ===== */
 const defaultUsers = {
   arin:{pw:'1234', role:'artist', name:'ARIN', avatar:''},
   yerin:{pw:'1234', role:'artist', name:'YERIN', avatar:''},
@@ -73,20 +74,19 @@ function save(){
 
 /* ===== LOGIN ===== */
 function login(){
-  const id = document.getElementById('loginId').value.trim();
-  const pw = document.getElementById('loginPw').value.trim();
+  const id = loginId.value.trim();
+  const pw = loginPw.value.trim();
   if(!users[id] || users[id].pw !== pw){ alert('로그인 실패'); return; }
   me = { id, ...users[id] };
-  document.getElementById('loginBox').classList.add('hidden');
-  document.getElementById('app').classList.remove('hidden');
+  loginBox.classList.add('hidden');
+  app.classList.remove('hidden');
   renderMe();
-  if(me.role==='artist') document.getElementById('writeBox').classList.remove('hidden');
-  if(me.id==='yerin') document.getElementById('addUserBtn').classList.remove('hidden');
+  if(me.role==='artist') writeBox.classList.remove('hidden');
+  if(me.id==='yerin') addUserBtn.classList.remove('hidden');
   render();
 }
 
 function renderMe(){
-  const meEl = document.getElementById('me');
   meEl.innerHTML = `${me.avatar?`<img class='avatar' src='${me.avatar}'>`:''}${me.name} ${me.role==='artist'?'🧑‍🎤':''}`;
 }
 
@@ -103,13 +103,7 @@ function addPost(){
 }
 
 function createPost(text, img){
-  posts.unshift({
-    id: Date.now(),
-    author: me.id,
-    text,
-    img,
-    comments: []
-  });
+  posts.unshift({ id:Date.now(), author:me.id, text, img, comments:[] });
   postText.value=''; imgInput.value='';
   save(); render();
 }
@@ -127,16 +121,20 @@ function deletePost(pid){
 }
 
 /* ===== COMMENTS ===== */
-function addComment(pid, txt){
+function addComment(pid, inputEl){
+  const txt = inputEl.value.trim();
+  if(!txt) return;
   const p = posts.find(p=>p.id===pid);
-  p.comments.push({ author: me.id, text: txt, replies: [] });
-  save(); render();
+  p.comments.push({ author:me.id, text:txt, replies:[] });
+  inputEl.value=''; save(); render();
 }
 
-function addReply(pid, ci, txt){
+function addReply(pid, ci, inputEl){
+  const txt = inputEl.value.trim();
+  if(!txt) return;
   const p = posts.find(p=>p.id===pid);
-  p.comments[ci].replies.push({ author: me.id, text: txt });
-  save(); render();
+  p.comments[ci].replies.push({ author:me.id, text:txt });
+  inputEl.value=''; save(); render();
 }
 
 /* ===== RENDER ===== */
@@ -158,10 +156,17 @@ function render(){
       <div>
         ${p.comments.map((c,i)=>`
           <div class='comment'><b>${users[c.author].name}</b> ${c.text}
-            ${me.role==='artist'?`<input placeholder='답글' onkeydown="if(event.key==='Enter')addReply(${p.id},${i},this.value)"/>`:''}
+            ${me.role==='artist'?`
+              <div class='inline'>
+                <input placeholder='답글'>
+                <button onclick="addReply(${p.id},${i}, this.previousElementSibling)">보내기</button>
+              </div>`:''}
             ${c.replies.map(r=>`<div class='reply'>${users[r.author].name}: ${r.text}</div>`).join('')}
           </div>`).join('')}
-        <input placeholder='댓글' onkeydown="if(event.key==='Enter')addComment(${p.id},this.value)" />
+        <div class='inline'>
+          <input placeholder='댓글'>
+          <button onclick="addComment(${p.id}, this.previousElementSibling)">보내기</button>
+        </div>
       </div>
     `;
     feed.appendChild(div);
@@ -182,12 +187,10 @@ function openSetting(){
 /* ===== ADMIN ===== */
 function openAddUser(){
   if(me.id!=='yerin') return alert('권한 없음');
-  const id=prompt('ID');
-  const pw=prompt('PW');
-  const role=prompt('fan / artist');
-  const name=prompt('이름');
+  const id=prompt('ID'); const pw=prompt('PW'); const role=prompt('fan / artist'); const name=prompt('이름');
   if(id&&pw&&role){ users[id]={pw,role,name:name||id,avatar:''}; save(); alert('계정 추가 완료'); }
 }
 </script>
 </body>
 </html>
+
