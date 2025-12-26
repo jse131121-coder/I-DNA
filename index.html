@@ -114,12 +114,15 @@
       <input id="loginId" placeholder="아이디" />
       <input id="loginPw" type="password" placeholder="비밀번호" />
       <button onclick="login()">로그인</button>
+      <button id="addAccountBtn" onclick="addAccount()" style="display:none;">계정 추가</button>
       <p id="loginStatus"></p>
     </section>
   </main>
 
   <script>
     let loggedIn = false;
+    let accounts = [{id:"I-DNA", pw:"01012345678"}]; // 기본 계정
+
     const sections = document.querySelectorAll('.section');
     const menu = document.getElementById('menu');
     document.getElementById('menuBtn').onclick = () => {
@@ -131,6 +134,7 @@
       menu.style.display = 'none';
       updateAccess();
     }
+
     function openChat(name, icon, status) {
       document.getElementById('pfName').value = name;
       document.getElementById('pfIcon').textContent = icon;
@@ -142,7 +146,7 @@
       show('groupChat');
     }
 
-    function sendMessage() {
+   function sendMessage() {
       const text = document.getElementById('chatMessage').value.trim();
       if (!text) return;
       if (!loggedIn) {
@@ -156,6 +160,14 @@
       bubble.innerHTML = text + '<br><span>(' + time + ')</span>';
       document.getElementById('chatBox').appendChild(bubble);
       document.getElementById('chatMessage').value = '';
+
+      // 로그인 상태일 때 멤버 답변 자동 추가 (왼쪽 말풍선)
+      setTimeout(() => {
+        const reply = document.createElement('div');
+        reply.className = 'bubble left';
+        reply.innerHTML = "(멤버 답변) " + text + " 👍<br><span>(" + new Date().toLocaleTimeString() + ")</span>";
+        document.getElementById('chatBox').appendChild(reply);
+      }, 1500);
     }
 
     function sendGroupMessage() {
@@ -172,6 +184,14 @@
       bubble.innerHTML = text + '<br><span>(' + time + ')</span>';
       document.getElementById('groupBox').appendChild(bubble);
       document.getElementById('groupMessage').value = '';
+
+      // 그룹 답변 자동 추가 (왼쪽 말풍선)
+      setTimeout(() => {
+        const reply = document.createElement('div');
+        reply.className = 'bubble left';
+        reply.innerHTML = "(아이드나 답변) " + text + " 💬<br><span>(" + new Date().toLocaleTimeString() + ")</span>";
+        document.getElementById('groupBox').appendChild(reply);
+      }, 1500);
     }
 
     function submitPost() {
@@ -187,10 +207,12 @@
       const id = document.getElementById('loginId').value.trim();
       const pw = document.getElementById('loginPw').value.trim();
       const status = document.getElementById('loginStatus');
-      if (id === "I-DNA" && pw === "01012345678") {
+      const found = accounts.find(acc => acc.id === id && acc.pw === pw);
+      if (found) {
         loggedIn = true;
         status.textContent = "로그인 성공!";
         show('home');
+        document.getElementById('addAccountBtn').style.display = 'block';
       } else {
         loggedIn = false;
         status.textContent = "로그인 실패!";
@@ -198,8 +220,16 @@
       updateAccess();
     }
 
+    function addAccount() {
+      const newId = prompt("새 아이디 입력:");
+      const newPw = prompt("새 비밀번호 입력:");
+      if (newId && newPw) {
+        accounts.push({id:newId, pw:newPw});
+        alert("계정 추가 완료!");
+      }
+    }
+
     function updateAccess() {
-      // 글쓰기 버튼은 로그인해야 활성화
       const uploadBtn = document.getElementById('uploadBtn');
       if (uploadBtn) {
         uploadBtn.disabled = !loggedIn;
@@ -217,6 +247,7 @@
   </script>
 </body>
 </html>
+
 
 
 
