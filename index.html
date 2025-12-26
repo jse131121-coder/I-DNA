@@ -70,15 +70,15 @@ function save(){
 }
 
 function login(){
-  const id = loginId.value;
-  const pw = loginPw.value;
-  if(!users[id] || users[id].pw !== pw) return alert('로그인 실패');
+  const id = document.getElementById('loginId').value.trim();
+  const pw = document.getElementById('loginPw').value.trim();
+  if(!users[id] || users[id].pw !== pw){ alert('로그인 실패'); return; }
   me = { id, ...users[id] };
-  login.classList.add('hidden');
-  app.classList.remove('hidden');
+  document.getElementById('login').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
   renderMe();
-  if(me.role==='artist') writeBox.classList.remove('hidden');
-  if(me.id==='yerin') addUserBtn.classList.remove('hidden');
+  if(me.role==='artist') document.getElementById('writeBox').classList.remove('hidden');
+  if(me.id==='yerin') document.getElementById('addUserBtn').classList.remove('hidden');
   render();
 }
 
@@ -178,3 +178,4 @@ function openAddUser(){
 </script>
 </body>
 </html>
+
