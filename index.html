@@ -5,193 +5,101 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Community</title>
   <style>
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #fffef6;
-    }
-    .app {
-      max-width: 420px;
-      margin: auto;
-      padding: 16px;
-    }
-    .login {
-      margin-top: 40px;
-    }
-    input, button, textarea {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
-      box-sizing: border-box;
-      font-size: 14px;
-    }
-    button {
-      background: #ffe48a;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    h1 {
-      font-size: 20px;
-      margin-bottom: 12px;
-    }
-    .block {
-      background: #fff4c2;
-      border-radius: 14px;
-      padding: 12px;
-      margin-bottom: 14px;
-    }
-    .row {
-      display: flex;
-      gap: 10px;
-    }
-    .pf {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #ddd;
-    }
-    .artist {
-      color: #c79a00;
-      font-weight: 700;
-    }
-    .msg {
-      background: white;
-      border-radius: 12px;
-      padding: 10px 12px;
-      margin-top: 6px;
-    }
-    .reply {
-      margin-left: 46px;
-      margin-top: 6px;
-      background: #fff1a8;
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 13px;
-    }
-    .time {
-      font-size: 11px;
-      color: #777;
-      margin-top: 4px;
-    }
-    .hidden { display: none; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:#fffef6; }
+    .app { max-width:420px; margin:auto; padding:16px; }
+    input, textarea, button { width:100%; padding:10px; margin-top:8px; border-radius:10px; border:1px solid #ddd; box-sizing:border-box; font-size:14px; }
+    button { background:#ffe48a; border:none; font-weight:600; cursor:pointer; }
+    h1 { font-size:20px; margin-bottom:12px; }
+    .hidden { display:none; }
+    .block { background:#fff4c2; border-radius:14px; padding:12px; margin-bottom:14px; }
+    .row { display:flex; gap:10px; }
+    .pf { width:36px; height:36px; border-radius:50%; background:#ddd; }
+    .artist { color:#c79a00; font-weight:700; }
+    .msg { background:white; border-radius:12px; padding:10px 12px; margin-top:6px; }
+    .reply { margin-left:46px; margin-top:6px; background:#fff1a8; border-radius:10px; padding:8px 10px; font-size:13px; }
+    .time { font-size:11px; color:#777; margin-top:4px; }
   </style>
 </head>
 <body>
 <div class="app">
 
   <!-- LOGIN -->
-  <div id="login" class="login">
+  <div id="login">
     <h1>LOGIN</h1>
     <input id="loginId" placeholder="ID" />
     <input id="loginPw" type="password" placeholder="PASSWORD" />
-    <button onclick="login()">ENTER</button>
+    <button id="loginBtn">ENTER</button>
   </div>
 
   <!-- COMMUNITY -->
   <div id="community" class="hidden">
     <h1>COMMUNITY</h1>
-
     <div id="artistInput" class="hidden">
       <textarea id="artistText" placeholder="메시지 입력"></textarea>
-      <button onclick="postMessage()">SEND</button>
+      <button id="sendBtn">SEND</button>
     </div>
-
     <div id="feed"></div>
   </div>
 
 </div>
 
 <script>
-/* =====================
-   MOCK MEMBERSHIP DATA
-===================== */
+// ===== 멤버십 유저 (프론트용) =====
 const users = {
-  "arin": { pw: "1234", role: "artist", name: "BAEK ARIN" },
-  "yerin": { pw: "1234", role: "artist", name: "BAEK YE RIN" },
-  "fan01": { pw: "1111", role: "fan", name: "fan01" }
+  arin: { pw: '1234', role: 'artist', name: 'BAEK ARIN' },
+  yerin: { pw: '1234', role: 'artist', name: 'BAEK YE RIN' },
+  fan01: { pw: '1111', role: 'fan', name: 'fan01' }
 };
 
 let currentUser = null;
-let messages = JSON.parse(localStorage.getItem("messages") || "[]");
+let messages = JSON.parse(localStorage.getItem('messages') || '[]');
 
-/* =====================
-   LOGIN
-===================== */
-function login() {
-  const id = loginId.value;
-  const pw = loginPw.value;
+const loginBox = document.getElementById('login');
+const communityBox = document.getElementById('community');
+const artistInput = document.getElementById('artistInput');
+const feed = document.getElementById('feed');
+
+// ===== LOGIN =====
+document.getElementById('loginBtn').onclick = () => {
+  const id = loginId.value.trim();
+  const pw = loginPw.value.trim();
   if (users[id] && users[id].pw === pw) {
     currentUser = users[id];
-    loginBox(false);
-    if (currentUser.role === "artist") {
-      document.getElementById("artistInput").classList.remove("hidden");
-    }
+    loginBox.classList.add('hidden');
+    communityBox.classList.remove('hidden');
+    if (currentUser.role === 'artist') artistInput.classList.remove('hidden');
     render();
   } else {
-    alert("로그인 실패");
+    alert('로그인 실패');
   }
-}
+};
 
-function loginBox(show) {
-  document.getElementById("login").classList.toggle("hidden", !show);
-  document.getElementById("community").classList.toggle("hidden", show);
-}
-
-/* =====================
-   POST MESSAGE
-===================== */
-function postMessage() {
+// ===== POST MESSAGE =====
+document.getElementById('sendBtn').onclick = () => {
   const text = artistText.value.trim();
   if (!text) return;
   messages.unshift({
     author: currentUser.name,
-    role: "artist",
+    role: 'artist',
     text,
     time: new Date().toLocaleString(),
     comments: []
   });
-  artistText.value = "";
+  artistText.value = '';
   save();
   render();
-}
-
-function postComment(i, input) {
-  const text = input.value.trim();
-  if (!text) return;
-  messages[i].comments.push({ author: currentUser.name, text });
-  save();
-  render();
-}
-
-function postReply(i, j, input) {
-  const text = input.value.trim();
-  if (!text) return;
-  messages[i].comments[j].reply = {
-    author: currentUser.name,
-    text
-  };
-  save();
-  render();
-}
+};
 
 function save() {
-  localStorage.setItem("messages", JSON.stringify(messages));
+  localStorage.setItem('messages', JSON.stringify(messages));
 }
 
-/* =====================
-   RENDER
-===================== */
+// ===== RENDER =====
 function render() {
-  const feed = document.getElementById("feed");
-  feed.innerHTML = "";
-
+  feed.innerHTML = '';
   messages.forEach((m, i) => {
-    const block = document.createElement("div");
-    block.className = "block";
-
+    const block = document.createElement('div');
+    block.className = 'block';
     block.innerHTML = `
       <div class="row">
         <div class="pf"></div>
@@ -200,33 +108,39 @@ function render() {
           <div class="msg">${m.text}</div>
           <div class="time">${m.time}</div>
         </div>
-      </div>
-    `;
+      </div>`;
 
     m.comments.forEach((c, j) => {
-      const cDiv = document.createElement("div");
-      cDiv.innerHTML = `<div class="msg">${c.author} : ${c.text}</div>`;
+      const cDiv = document.createElement('div');
+      cDiv.className = 'msg';
+      cDiv.textContent = `${c.author} : ${c.text}`;
       block.appendChild(cDiv);
 
       if (c.reply) {
-        const rDiv = document.createElement("div");
-        rDiv.className = "reply";
-        rDiv.innerText = `★ ${c.reply.author} : ${c.reply.text}`;
-        block.appendChild(rDiv);
-      } else if (currentUser.role === "artist") {
-        const rInput = document.createElement("input");
-        rInput.placeholder = "대댓글";
+        const r = document.createElement('div');
+        r.className = 'reply';
+        r.textContent = `★ ${c.reply.author} : ${c.reply.text}`;
+        block.appendChild(r);
+      } else if (currentUser.role === 'artist') {
+        const rInput = document.createElement('input');
+        rInput.placeholder = '대댓글';
         rInput.onkeydown = e => {
-          if (e.key === "Enter") postReply(i, j, rInput);
+          if (e.key === 'Enter') {
+            c.reply = { author: currentUser.name, text: rInput.value };
+            save(); render();
+          }
         };
         block.appendChild(rInput);
       }
     });
 
-    const input = document.createElement("input");
-    input.placeholder = "댓글";
+    const input = document.createElement('input');
+    input.placeholder = '댓글';
     input.onkeydown = e => {
-      if (e.key === "Enter") postComment(i, input);
+      if (e.key === 'Enter') {
+        m.comments.push({ author: currentUser.name, text: input.value });
+        save(); render();
+      }
     };
     block.appendChild(input);
 
