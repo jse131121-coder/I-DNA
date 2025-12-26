@@ -73,6 +73,10 @@
       padding: 8px 12px; border: none; background: #fdd835;
       border-radius: 8px; cursor: pointer;
     }
+    .disabled {
+      background: #ccc !important;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -85,6 +89,7 @@
     <button onclick="show('chatList')">CHAT</button>
     <button onclick="show('feedList')">FEED</button>
     <button onclick="show('writeFeed')">글쓰기</button>
+    <button onclick="show('login')">로그인</button>
   </div>
 
   <main>
@@ -123,7 +128,7 @@
       <div class="chat-box" id="chatBox"></div>
       <div>
         <input id="chatMessage" placeholder="(팬이 보내는 메세지)" />
-        <button onclick="sendMessage()">보내기</button>
+        <button id="chatSendBtn" onclick="sendMessage()">보내기</button>
       </div>
     </section>
 
@@ -133,7 +138,7 @@
       <div class="chat-box" id="groupBox"></div>
       <div>
         <input id="groupMessage" placeholder="(팬이 보내는 메세지)" />
-        <button onclick="sendGroupMessage()">보내기</button>
+        <button id="groupSendBtn" onclick="sendGroupMessage()">보내기</button>
       </div>
     </section>
 
@@ -152,11 +157,21 @@
       <textarea id="content" placeholder="(내용)"></textarea>
       <input id="author" placeholder="(이름)" />
       <input type="file" id="photo" />
-      <button onclick="submitPost()">업로드</button>
+      <button id="uploadBtn" onclick="submitPost()">업로드</button>
+    </section>
+
+    <!-- 로그인 -->
+    <section id="login" class="section">
+      <h3>로그인</h3>
+      <input id="loginId" placeholder="아이디" />
+      <input id="loginPw" type="password" placeholder="비밀번호" />
+      <button onclick="login()">로그인</button>
+      <p id="loginStatus"></p>
     </section>
   </main>
 
   <script>
+    let loggedIn = false;
     const sections = document.querySelectorAll('.section');
     const menu = document.getElementById('menu');
     document.getElementById('menuBtn').onclick = () => {
@@ -166,37 +181,28 @@
       sections.forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       menu.style.display = 'none';
+      updateAccess();
     }
-    function openChat() {
-      show('chatRoom');
-    }
-    function openGroupChat() {
-      show('groupChat');
-    }
+    function openChat() { show('chatRoom'); }
+    function openGroupChat() { show('groupChat'); }
     function sendMessage(){
+      if(!loggedIn){ alert("로그인 후 이용 가능합니다."); return; }
       const text = document.getElementById('chatMessage').value;
       if(!text) return;
       const time = new Date().toLocaleTimeString();
       const bubble = document.createElement('div');
       bubble.className = 'bubble right';
-      bubble.innerHTML = text + '<br><span>('+time+')</span>';
+      bubble.innerHTML = text + '<br><span>(' + time + ')</span>';
       document.getElementById('chatBox').appendChild(bubble);
       document.getElementById('chatMessage').value = '';
     }
     function sendGroupMessage(){
+      if(!loggedIn){ alert("로그인 후 이용 가능합니다."); return; }
       const text = document.getElementById('groupMessage').value;
       if(!text) return;
       const time = new Date().toLocaleTimeString();
       const bubble = document.createElement('div');
       bubble.className = 'bubble right';
-      bubble.innerHTML = text + '<br><span>('+time+')</span>';
+      bubble.innerHTML = text + '<br><span>(' + time + ')</span>';
       document.getElementById('groupBox').appendChild(bubble);
-      document.getElementById('groupMessage').value = '';
-    }
-    function submitPost(){
-      alert("업로드 완료 (데모)");
-      show('feedList');
-    }
-  </script>
-</body>
-</html>
+      document.getElementById('groupMessage').
