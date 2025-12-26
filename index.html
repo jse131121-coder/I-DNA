@@ -1,164 +1,121 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>DIDNA</title>
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AND,JIN</title>
   <style>
-    body { margin:0; font-family:sans-serif; background:#fffde7; }
-    header { background:#fdd835; padding:12px; display:flex; justify-content:space-between; align-items:center; }
-    #menuBtn { font-size:24px; background:none; border:none; cursor:pointer; }
-    #menu { position:fixed; top:0; left:0; width:70%; height:100%; background:#fff;
-            border-right:2px solid #ccc; padding:20px; display:none; flex-direction:column; gap:12px; }
-    #menu button { font-size:18px; background:none; border:none; text-align:left; padding:8px; cursor:pointer; }
-    main { padding:20px; }
-    .section { display:none; }
-    .active { display:block; }
-    .chat-box { display:flex; flex-direction:column; gap:12px; }
-    .bubble { max-width:78%; padding:10px; border-radius:12px; font-size:14px; }
-    .bubble.left { align-self:flex-start; background:#e0f7fa; }
-    .bubble.right { align-self:flex-end; background:#ffe0b2; }
-    input, textarea { width:100%; margin:6px 0; padding:8px; border:1px solid #ccc; border-radius:8px; }
-    button { padding:8px 12px; border:none; background:#fdd835; border-radius:8px; cursor:pointer; }
-    .disabled { background:#ccc !important; cursor:not-allowed; }
-    .feed-card { padding:12px; border:1px solid #ddd; border-radius:10px; background:#fff; margin-bottom:12px; }
+    :root {--bg:#fff;--fg:#111;--muted:#666;--border:#e7e7e7;--accent:#f6f6f6;--radius:12px;--font:"Pretendard",sans-serif;}
+    body{margin:0;font-family:var(--font);background:var(--bg);color:var(--fg);}
+    .wrap{max-width:720px;margin:0 auto;padding:24px 16px 80px;}
+    .header{display:flex;justify-content:space-between;margin-bottom:24px;}
+    .brand{font-weight:700;font-size:18px;}
+    .sub{color:var(--muted);font-size:13px;}
+    .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:24px;}
+    .tab{border:1px solid var(--border);border-radius:var(--radius);padding:10px;background:#fff;}
+    .tab.active{background:var(--accent);font-weight:600;}
+    .section{display:none}.section.active{display:block}
+    .card{border:1px solid var(--border);border-radius:var(--radius);padding:16px;background:#fff;margin-bottom:16px;}
+    .card h3{margin:0 0 8px}
+    .form{display:grid;gap:10px}.row{display:grid;gap:6px}
+    input,textarea{border:1px solid var(--border);border-radius:10px;padding:10px}
+    .btn{padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:#fff}
+    .btn.primary{background:#111;color:#fff;border-color:#111}
+    .list{display:grid;gap:10px}
+    .item{border:1px solid var(--border);border-radius:10px;padding:12px}
+    .item-head{display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px;color:var(--muted)}
+    .item-title{font-weight:600;font-size:15px}
+    .item-body{font-size:14px;white-space:pre-wrap}
+    .profile{display:grid;grid-template-columns:88px 1fr;gap:16px}
+    .avatar{width:88px;height:88px;border:1px solid var(--border);border-radius:14px;display:grid;place-items:center;background:#fafafa}
+    .avatar img{width:100%;height:100%;object-fit:cover}
   </style>
 </head>
 <body>
-  <header>
-    <h1>DIDNA</h1>
-    <button id="menuBtn">☰</button>
-  </header>
+  <div class="wrap">
+    <header class="header">
+      <div><div class="brand">AND,JIN</div><div class="sub">AINI · 로그인 필요한 기능은 껍데기만 구현</div></div>
+      <div class="sub">베타</div>
+    </header>
+    <nav class="tabs">
+      <button class="tab active" data-tab="home">홈</button>
+      <button class="tab" data-tab="community">커뮤니티</button>
+      <button class="tab" data-tab="chat">채팅</button>
+      <button class="tab" data-tab="notice">공지</button>
+    </nav>
 
-  <div id="menu">
-    <button onclick="show('chat')">CHAT</button>
-    <button onclick="show('feed')">FEED</button>
-    <button onclick="show('write')">글쓰기</button>
-    <button onclick="show('login')">로그인</button>
-  </div>
-
-  <main>
-    <!-- 채팅 -->
-    <section id="chat" class="section active">
-      <h3>채팅</h3>
-      <div class="chat-box" id="chatBox"></div>
-      <input id="chatMessage" placeholder="메세지 입력" />
-      <button onclick="sendMessage()">보내기</button>
+    <!-- HOME -->
+    <section id="home" class="section active">
+      <div class="card">
+        <h3>프로필</h3>
+        <div class="profile">
+          <div class="avatar" id="avatarBox"><span>사진 없음</span></div>
+          <div class="form">
+            <div class="row"><label>이름</label><input id="displayName"></div>
+            <div class="row"><label>프로필 사진 URL</label><input id="photoUrl"></div>
+            <div class="actions"><button class="btn" id="profileCancel">닫기</button><button class="btn primary" id="profileSave">저장</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="card"><h3>AND,JIN AINI</h3><p class="empty">이메일/비번 로그인은 데모에서 미구현.</p></div>
     </section>
 
-    <!-- 피드 -->
-    <section id="feed" class="section">
-      <h3>피드</h3>
-      <div id="feedList">
-        <div class="feed-card">예시 피드: 제목 / 내용</div>
+    <!-- COMMUNITY -->
+    <section id="community" class="section">
+      <div class="card">
+        <h3>COMMUNITY 글 작성</h3>
+        <form class="form" id="communityForm">
+          <div class="row"><label>작성자</label><input id="writer"></div>
+          <div class="row"><label>제목</label><input id="title"></div>
+          <div class="row"><label>내용</label><textarea id="content"></textarea></div>
+          <div class="row"><label>사진 URL</label><input id="photo"></div>
+          <div class="actions"><button type="reset" class="btn">초기화</button><button type="submit" class="btn primary">등록</button></div>
+        </form>
+      </div>
+      <div class="card"><h3>COMMUNITY 목록</h3><div id="communityList" class="list"><p class="empty">아직 작성된 글이 없습니다.</p></div></div>
+    </section>
+
+    <!-- CHAT -->
+    <section id="chat" class="section">
+      <div class="card">
+        <h3>CHAT</h3>
+        <div class="list" id="chatList"><p class="empty">메시지가 없습니다.</p></div>
+        <form class="form" id="chatForm">
+          <div class="row"><label>보내는 사람</label><input id="chatSender"></div>
+          <div class="row"><label>메시지</label><input id="chatText"></div>
+          <div class="actions"><button type="submit" class="btn primary">send</button></div>
+        </form>
       </div>
     </section>
 
-    <!-- 글쓰기 -->
-    <section id="write" class="section">
-      <h3>글쓰기</h3>
-      <input id="title" placeholder="제목" />
-      <textarea id="content" placeholder="내용"></textarea>
-      <input id="author" placeholder="작성자" />
-      <button id="uploadBtn" onclick="submitPost()">업로드</button>
+    <!-- NOTICE -->
+    <section id="notice" class="section">
+      <div class="card">
+        <h3>NOTICE 작성</h3>
+        <form class="form" id="noticeForm">
+          <div class="row"><label>agency</label><input id="noticeAgency"></div>
+          <div class="row"><label>제목</label><input id="noticeTitle"></div>
+          <div class="row"><label>내용</label><textarea id="noticeBody"></textarea></div>
+          <div class="actions"><button type="reset" class="btn">초기화</button><button type="submit" class="btn primary">등록</button></div>
+        </form>
+      </div>
+      <div class="card"><h3>NOTICE 목록</h3><div id="noticeList" class="list"><p class="empty">등록된 공지가 없습니다.</p></div></div>
     </section>
-
-    <!-- 로그인 -->
-    <section id="login" class="section">
-      <h3>로그인</h3>
-      <input id="loginId" placeholder="아이디" />
-      <input id="loginPw" type="password" placeholder="비밀번호" />
-      <button onclick="login()">로그인</button>
-      <button id="addAccountBtn" onclick="addAccount()" style="display:none;">계정 추가</button>
-      <p id="loginStatus"></p>
-    </section>
-  </main>
+  </div>
 
   <script>
-    let loggedIn = false;
-    let accounts = [{id:"I-DNA", pw:"01012345678"}];
+    const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
+    $$('.tab').forEach(btn=>btn.onclick=()=>{const id=btn.dataset.tab;$$('.tab').forEach(b=>b.classList.toggle('active',b===btn));$$('.section').forEach(s=>s.classList.toggle('active',s.id===id));});
+    const profileKey='aj.profile';let profile=JSON.parse(localStorage.getItem(profileKey)||'{}');
+    function renderAvatar(){const box=$('#avatarBox');box.innerHTML=profile.photoUrl?`<img src="${profile.photoUrl}">`:'<span>사진 없음</span>';}
+    function loadProfile(){ $('#displayName').value=profile.displayName||''; $('#photoUrl').value=profile.photoUrl||''; renderAvatar();}
+    loadProfile();
+    $('#profileSave').onclick=()=>{profile.displayName=$('#displayName').value;profile.photoUrl=$('#photoUrl').value;localStorage.setItem(profileKey,JSON.stringify(profile));renderAvatar();};
+    $('#profileCancel').onclick=loadProfile;
 
-    const sections = document.querySelectorAll('.section');
-    const menu = document.getElementById('menu');
-    document.getElementById('menuBtn').onclick = () => {
-      menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
-    };
-    function show(id) {
-      sections.forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      menu.style.display = 'none';
-      updateAccess();
-    }
+    const communityKey='aj.community';let community=JSON.parse(localStorage.getItem(communityKey)||'[]');const communityList=$('#communityList');
+    function renderCommunity(){communityList.innerHTML='';if(!community.length){communityList.innerHTML='<p class="empty">아직 작성된 글이 없습니다.</p>';return;}
+      community.forEach((p,i)=>{const item=document.createElement('div');item.className='item';item.innerHTML=`<div class="item-head"><span>${p.writer||'익명'}</span><span>${new Date(p.createdAt).toLocaleString()}</span></div><div class="item-title">${p.title}</div><div class="item-body">${p.content
 
-    function sendMessage() {
-      const text = document.getElementById('chatMessage').value.trim();
-      if (!text) return;
-      if (!loggedIn) {
-        alert("로그인 후 메시지가 표시됩니다.");
-        document.getElementById('chatMessage').value = '';
-        return;
-      }
-      const time = new Date().toLocaleTimeString();
-      const bubble = document.createElement('div');
-      bubble.className = 'bubble left'; // 로그인 시 왼쪽 말풍선
-      bubble.innerHTML = text + '<br><span>(' + time + ')</span>';
-      document.getElementById('chatBox').appendChild(bubble);
-      document.getElementById('chatMessage').value = '';
-    }
-
-    function submitPost() {
-      if (!loggedIn) {
-        alert("로그인 후 이용 가능합니다.");
-        return;
-      }
-      const title = document.getElementById('title').value;
-      const content = document.getElementById('content').value;
-      const author = document.getElementById('author').value;
-      const card = document.createElement('div');
-      card.className = 'feed-card';
-      card.innerHTML = `<strong>${title}</strong><br>${content}<br>- ${author}`;
-      document.getElementById('feedList').appendChild(card);
-      alert("업로드 완료!");
-      show('feed');
-    }
-
-    function login() {
-      const id = document.getElementById('loginId').value.trim();
-      const pw = document.getElementById('loginPw').value.trim();
-      const status = document.getElementById('loginStatus');
-      const found = accounts.find(acc => acc.id === id && acc.pw === pw);
-      if (found) {
-        loggedIn = true;
-        status.textContent = "로그인 성공!";
-        document.getElementById('addAccountBtn').style.display = 'block';
-        show('chat');
-      } else {
-        loggedIn = false;
-        status.textContent = "로그인 실패!";
-      }
-      updateAccess();
-    }
-
-    function addAccount() {
-      const newId = prompt("새 아이디 입력:");
-      const newPw = prompt("새 비밀번호 입력:");
-      if (newId && newPw) {
-        accounts.push({id:newId, pw:newPw});
-        alert("계정 추가 완료!");
-      }
-    }
-
-    function updateAccess() {
-      const uploadBtn = document.getElementById('uploadBtn');
-      if (uploadBtn) {
-        uploadBtn.disabled = !loggedIn;
-        uploadBtn.classList.toggle('disabled', !loggedIn);
-      }
-    }
-
-    // 초기 화면
-    show('chat');
-  </script>
-</body>
-</html>
-
+                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                 
