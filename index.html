@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>DIDNA</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- 구름고딕 웹폰트 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.3/GowunDodum.css" rel="stylesheet" />
   <style>
     body { margin:0; font-family:'GowunDodum',sans-serif; background:#fffde7; }
@@ -45,22 +44,22 @@
     <!-- 첫 화면 -->
     <section id="home" class="section active">
       <div class="member-list">
-        <div onclick="openChat()">SEOBYEOL</div>
-        <div onclick="openChat()">EUNSAM</div>
-        <div onclick="openChat()">YESEO</div>
-        <div onclick="openChat()">SOOIN</div>
-        <div onclick="openChat()">LEESEO</div>
+        <div onclick="openChat('서별','⚫','I-DNA 첫째 새별이 만나러 가는 길')">SEOBYEOL</div>
+        <div onclick="openChat('은샘','👾','I-DNA 둘째 은샘이 만나러 가는 길')">EUNSAM</div>
+        <div onclick="openChat('예서','🐉','I-DNA 셋째 예서 만나러 가는 길')">YESEO</div>
+        <div onclick="openChat('수인','🍥','I-DNA 넷째 수인이 만나러 가는 길')">SOOIN</div>
+        <div onclick="openChat('이서','🎀','I-DNA 막내 이서 만나러 가는 길')">LEESEO</div>
       </div>
     </section>
 
     <!-- CHAT 리스트 -->
     <section id="chatList" class="section">
       <div class="member-list">
-        <div onclick="openChat()">💿 서별 Chat</div>
-        <div onclick="openChat()">👾 온샘 Chat</div>
-        <div onclick="openChat()">🦎 예서 Chat</div>
-        <div onclick="openChat()">🍬 수인 Chat</div>
-        <div onclick="openChat()">🎀 이서 Chat</div>
+        <div onclick="openChat('서별','⚫','I-DNA 첫째 새별이 만나러 가는 길')">🌐 서별 Chat</div>
+        <div onclick="openChat('은샘','👾','I-DNA 둘째 은샘이 만나러 가는 길')">👾 온샘 Chat</div>
+        <div onclick="openChat('예서','🐉','I-DNA 셋째 예서 만나러 가는 길')">🐉 예서 Chat</div>
+        <div onclick="openChat('수인','🍥','I-DNA 넷째 수인이 만나러 가는 길')">🍥 수인 Chat</div>
+        <div onclick="openChat('이서','🎀','I-DNA 막내 이서 만나러 가는 길')">🎀 이서 Chat</div>
         <div onclick="openGroupChat()">🎨 아이드나 Chat</div>
       </div>
     </section>
@@ -132,38 +131,7 @@
       menu.style.display = 'none';
       updateAccess();
     }
-    function openChat() { show('chatRoom'); }
-    function openGroupChat() { show('groupChat'); }
-
-    function sendMessage(){
-      const text = document.getElementById('chatMessage').value;
-      if(!text) return;
-      if(!loggedIn){
-        alert("로그인 후 답변이 표시됩니다.");
-        document.getElementById('chatMessage').value = '';
-        return;
-      }
-      const time = new Date().toLocaleTimeString();
-      const bubble = document.createElement('div');
-      bubble.className = 'bubble right';
-      bubble.innerHTML = text + '<br><span>(' + time + ')</span>';
-      document.getElementById('chatBox').appendChild(bubble);
-      document.getElementById('chatMessage').value = '';
-    }
-
-    function sendGroupMessage(){
-      const text = document.getElementById('groupMessage').value;
-      if(!text) return;
-      if(!loggedIn){
-        alert("로그인 후 답변이 표시됩니다.");
-        document.getElementById('groupMessage').value = '';
-        return;
-      }
-      const time = new Date().toLocaleTimeString();
-      const bubble = document.createElement('div');
-      bubble.className = 'bubble right';
-      bubble.innerHTML = text + '<br><span>(' + time + ')</span>';
-      document.getElementById('groupBox').appendChild(bubble);
+    function openChat(name
 
 
 
