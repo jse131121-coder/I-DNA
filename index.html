@@ -15,28 +15,30 @@ input,textarea{width:100%;padding:8px;margin-top:6px;border-radius:8px;border:1p
 .nav{display:flex;gap:6px;flex-wrap:wrap}
 .meta{font-size:12px;color:#888}
 .artist{color:#c92a2a;font-weight:700}
-.comment{font-size:14px;margin-top:6px}
-.reply{margin-left:16px;font-size:13px;color:#555}
-.inline{display:flex;gap:6px;margin-top:6px}
 .avatar{width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;object-fit:cover}
+.msg{max-width:80%;padding:8px;border-radius:12px;margin:6px 0;white-space:pre-wrap}
+.left{background:#f1f3f5;text-align:left}
+.right{background:#ffe066;margin-left:auto;text-align:left}
+.msg-wrap{display:flex;flex-direction:column}
+.name{font-size:12px;font-weight:700}
+.badge{font-size:11px;margin-left:4px}
+img.msg-img{max-width:100%;border-radius:10px;margin-top:6px}
 </style>
 </head>
 <body>
 <header>DIDNA</header>
 <div class="wrap">
 
-<!-- LOGIN -->
 <div id="loginBox" class="box">
   <input id="loginId" placeholder="ID" />
   <input id="loginPw" type="password" placeholder="PW" />
   <button onclick="login()">로그인</button>
 </div>
 
-<!-- APP -->
 <div id="app" class="hidden">
 
 <div class="box">
-  <span id="me"></span>
+  <span id="meEl"></span>
   <div class="nav">
     <button onclick="view='feed';render()">피드</button>
     <button onclick="view='notice';render()">공지</button>
@@ -48,10 +50,7 @@ input,textarea{width:100%;padding:8px;margin-top:6px;border-radius:8px;border:1p
   </div>
 </div>
 
-<!-- WRITE -->
-<div id="writeBox" class="box hidden"></div>
-
-<!-- CONTENT -->
+<div id="writeBox" class="box"></div>
 <div id="content"></div>
 
 </div>
@@ -59,17 +58,12 @@ input,textarea{width:100%;padding:8px;margin-top:6px;border-radius:8px;border:1p
 
 <script>
 /* ===== DATA ===== */
-const defaultUsers={yerin:{pw:'1234',role:'artist',name:'YERIN',avatar:''}};
+const defaultUsers={yerin:{pw:'1234',role:'artist',name:'YERIN',avatar:'',badge:'ARTIST'}};
 let users=JSON.parse(localStorage.getItem('users'))||defaultUsers;
-let data=JSON.parse(localStorage.getItem('didnaData'))||{
-  feed:[], notice:[], chat:[], group:[], suggest:[], memo:[]
-};
-let me=null; let view='feed';
+let data=JSON.parse(localStorage.getItem('didnaData'))||{feed:[],notice:[],chat:[],group:[],suggest:[]};
+let me=null, view='feed';
 
-function save(){
-  localStorage.setItem('users',JSON.stringify(users));
-  localStorage.setItem('didnaData',JSON.stringify(data));
-}
+function save(){localStorage.setItem('users',JSON.stringify(users));localStorage.setItem('didnaData',JSON.stringify(data));}
 
 /* ===== LOGIN ===== */
 function login(){
@@ -77,48 +71,53 @@ function login(){
   if(!users[id]||users[id].pw!==pw){alert('로그인 실패');return}
   me={id,...users[id]};
   loginBox.classList.add('hidden'); app.classList.remove('hidden');
-  if(me.role==='artist') writeBox.classList.remove('hidden');
   if(me.id==='yerin') addUserBtn.classList.remove('hidden');
   renderMe(); render();
 }
 function renderMe(){
-  me.innerHTML=`${me.avatar?`<img class='avatar' src='${me.avatar}'>`:''}${me.name} ${me.role==='artist'?'🧑‍🎤':''}`;
+  meEl.innerHTML=`${me.avatar?`<img class='avatar' src='${me.avatar}'>`:''}${me.name}${me.role==='artist'?' 🧑‍🎤':''}`;
 }
 
-/* ===== WRITE BOX ===== */
+/* ===== WRITE ===== */
 function setupWrite(){
-  if(view==='feed'&&me.role==='artist') writeBox.innerHTML=`<textarea id='txt' placeholder='피드 작성'></textarea><button onclick="addItem('feed')">게시</button>`;
-  else if(view==='notice'&&me.role==='artist') writeBox.innerHTML=`<textarea id='txt' placeholder='공지 작성'></textarea><button onclick="addItem('notice')">공지</button>`;
-  else if(view==='chat'||view==='group') writeBox.innerHTML=`<textarea id='txt' placeholder='메시지'></textarea><button onclick="addItem('${view}')">보내기</button>`;
-  else if(view==='suggest'&&me.role==='fan') writeBox.innerHTML=`<textarea id='txt' placeholder='건의'></textarea><button onclick="addItem('suggest')">보내기</button>`;
-  else writeBox.innerHTML='';
+  writeBox.innerHTML='';
+  if((view==='feed'||view==='notice')&&me.role!=='artist') return;
+  if(view==='suggest'&&me.role==='artist') return;
+  const t=document.createElement('textarea'); t.id='txt'; t.placeholder='내용';
+  const f=document.createElement('input'); f.type='file'; f.accept='image/*'; f.id='img';
+  const b=document.createElement('button'); b.textContent='보내기';
+  b.onclick=()=>sendItem();
+  writeBox.append(t,f,b);
 }
 
-function addItem(type){
-  const t=document.getElementById('txt').value.trim(); if(!t)return;
-  data[type].unshift({id:Date.now(),author:me.id,text:t,reply:[]});
-  document.getElementById('txt').value=''; save(); render();
+function sendItem(){
+  const txt=document.getElementById('txt').value;
+  const file=document.getElementById('img').files[0];
+  if(!txt && !file) return;
+  if(file){
+    const r=new FileReader();
+    r.onload=()=>pushItem(txt,r.result);
+    r.readAsDataURL(file);
+  } else pushItem(txt,null);
+}
+
+function pushItem(text,img){
+  data[view].push({id:Date.now(),author:me.id,text, img});
+  save(); render();
 }
 
 /* ===== RENDER ===== */
 function render(){
   setupWrite(); content.innerHTML='';
-  data[view].forEach((p,i)=>{
+  data[view].forEach(p=>{
     const u=users[p.author];
-    const d=document.createElement('div'); d.className='box';
-    d.innerHTML=`
-      <div class='meta ${u.role==='artist'?'artist':''}'>${u.name}</div>
-      <div>${p.text}</div>
-      ${view==='suggest'&&me.role==='artist'?`<div class='inline'><input placeholder='답변'><button onclick="replyItem('${view}',${i},this.previousElementSibling)">보내기</button></div>`:''}
-      ${(p.reply||[]).map(r=>`<div class='reply'>${users[r.author].name}: ${r.text}</div>`).join('')}
-    `;
-    content.appendChild(d);
+    const isGroup=view==='group';
+    const side=isGroup?(u.role==='artist'?'left':'right'):'left';
+    const wrap=document.createElement('div'); wrap.className='msg-wrap';
+    const m=document.createElement('div'); m.className=`msg ${side}`;
+    m.innerHTML=`${isGroup?`<div class='name'>${u.avatar?`<img class='avatar' src='${u.avatar}'>`:''}${u.name}<span class='badge'>${u.badge||''}</span></div>`:''}<div>${p.text.replace(/\n/g,'<br>')}</div>${p.img?`<img class='msg-img' src='${p.img}'>`:''}`;
+    wrap.appendChild(m); content.appendChild(wrap);
   });
-}
-
-function replyItem(type,i,input){
-  const t=input.value.trim(); if(!t)return;
-  data[type][i].reply.push({author:me.id,text:t}); input.value=''; save(); render();
 }
 
 /* ===== SETTINGS ===== */
@@ -135,11 +134,9 @@ function openSetting(){
 /* ===== ADMIN ===== */
 function openAddUser(){
   const id=prompt('ID'), pw=prompt('PW'), role=prompt('fan/artist'), name=prompt('이름');
-  if(id&&pw&&role){ users[id]={pw,role,name:name||id,avatar:''}; save(); alert('계정 추가 완료'); }
+  if(id&&pw&&role){ users[id]={pw,role,name:name||id,avatar:'',badge:role==='artist'?'ARTIST':'FAN'}; save(); alert('계정 추가 완료'); }
 }
 </script>
 </body>
 </html>
-
-
 
