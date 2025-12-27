@@ -1,142 +1,116 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>DIDNA</title>
-<style>
-body{margin:0;font-family:system-ui,-apple-system;background:#fffbe6}
-header{padding:14px;font-weight:700;text-align:center;background:#fff3b0}
-.hidden{display:none}
-.wrap{max-width:520px;margin:0 auto}
-.box{background:#fff;margin:12px;padding:12px;border-radius:14px}
-button{border:none;padding:6px 10px;border-radius:8px;background:#ffe066;font-weight:600;cursor:pointer;font-size:13px}
-input,textarea{width:100%;padding:8px;margin-top:6px;border-radius:8px;border:1px solid #ddd;font-size:14px}
-.nav{display:flex;gap:6px;flex-wrap:wrap}
-.meta{font-size:12px;color:#888}
-.artist{color:#c92a2a;font-weight:700}
-.avatar{width:26px;height:26px;border-radius:50%;vertical-align:middle;margin-right:6px;object-fit:cover}
-.msg{max-width:80%;padding:8px;border-radius:12px;margin:6px 0;white-space:pre-wrap}
-.left{background:#f1f3f5;text-align:left}
-.right{background:#ffe066;margin-left:auto;text-align:left}
-.msg-wrap{display:flex;flex-direction:column}
-.name{font-size:12px;font-weight:700}
-.badge{font-size:11px;margin-left:4px}
-img.msg-img{max-width:100%;border-radius:10px;margin-top:6px}
-</style>
+  <meta charset="UTF-8" />
+  <title>Community MVP</title>
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#f6f6f6; }
+    .login-screen { height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:12px; }
+    input, button, textarea { padding:10px; border-radius:8px; border:1px solid #ccc; }
+    button { cursor:pointer; }
+
+    /* 공통 */
+    .post { background:#fff; border-radius:12px; padding:12px; margin-bottom:12px; }
+    .post-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+    .avatar { width:40px; height:40px; border-radius:50%; background:#ddd; object-fit:cover; }
+    .badge { font-size:11px; padding:2px 6px; border-radius:6px; background:#eaeaea; }
+    .badge.artist { background:#c9f7c9; }
+    .content { white-space: pre-wrap; }
+
+    /* 채팅 */
+    .chat-box { padding:12px; }
+    .bubble { max-width:70%; padding:10px; border-radius:14px; margin:6px 0; white-space: pre-wrap; }
+    .bubble.fan { background:#fff; margin-left:auto; border-top-right-radius:0; }
+    .bubble.artist { background:#e9ffe9; margin-right:auto; border-top-left-radius:0; }
+
+    .readonly { opacity:0.6; pointer-events:none; }
+  </style>
 </head>
 <body>
-<header>DIDNA</header>
-<div class="wrap">
 
-<div id="loginBox" class="box">
-  <input id="loginId" placeholder="ID" />
-  <input id="loginPw" type="password" placeholder="PW" />
+<div id="login" class="login-screen">
+  <h2>LOGIN</h2>
+  <input id="id" placeholder="ID" />
+  <input id="pw" type="password" placeholder="PW" />
   <button onclick="login()">로그인</button>
+  <button onclick="guest()">로그인 건너뛰기 (읽기 전용)</button>
 </div>
 
-<div id="app" class="hidden">
+<div id="app" style="display:none; padding:16px;">
+  <h2>COMMUNITY</h2>
 
-<div class="box">
-  <span id="meEl"></span>
-  <div class="nav">
-    <button onclick="view='feed';render()">피드</button>
-    <button onclick="view='notice';render()">공지</button>
-    <button onclick="view='chat';render()">채팅</button>
-    <button onclick="view='group';render()">단체채팅</button>
-    <button onclick="view='suggest';render()">건의</button>
-    <button onclick="openSetting()">⚙️</button>
-    <button id="addUserBtn" class="hidden" onclick="openAddUser()">➕</button>
-  </div>
-</div>
+  <!-- 피드 / 공지 / 건의 -->
+  <div id="posts"></div>
 
-<div id="writeBox" class="box"></div>
-<div id="content"></div>
-
-</div>
+  <!-- 채팅 -->
+  <h3>CHAT</h3>
+  <div id="chat" class="chat-box"></div>
+  <textarea id="chatInput" placeholder="메시지 입력"></textarea>
+  <button onclick="sendChat()">보내기</button>
 </div>
 
 <script>
-/* ===== DATA ===== */
-const defaultUsers={yerin:{pw:'1234',role:'artist',name:'YERIN',avatar:'',badge:'ARTIST'}};
-let users=JSON.parse(localStorage.getItem('users'))||defaultUsers;
-let data=JSON.parse(localStorage.getItem('didnaData'))||{feed:[],notice:[],chat:[],group:[],suggest:[]};
-let me=null, view='feed';
+const users = JSON.parse(localStorage.getItem('users') || '{"yerin":{"pw":"1234","role":"artist","name":"예린","avatar":""}}');
+let currentUser = null;
+let readOnly = false;
 
-function save(){localStorage.setItem('users',JSON.stringify(users));localStorage.setItem('didnaData',JSON.stringify(data));}
-
-/* ===== LOGIN ===== */
 function login(){
-  const id=loginId.value.trim(), pw=loginPw.value.trim();
-  if(!users[id]||users[id].pw!==pw){alert('로그인 실패');return}
-  me={id,...users[id]};
-  loginBox.classList.add('hidden'); app.classList.remove('hidden');
-  if(me.id==='yerin') addUserBtn.classList.remove('hidden');
-  renderMe(); render();
+  const id=document.getElementById('id').value;
+  const pw=document.getElementById('pw').value;
+  if(users[id] && users[id].pw===pw){
+    currentUser={id,...users[id]};
+    start();
+  } else alert('로그인 실패');
 }
-function renderMe(){
-  meEl.innerHTML=`${me.avatar?`<img class='avatar' src='${me.avatar}'>`:''}${me.name}${me.role==='artist'?' 🧑‍🎤':''}`;
+function guest(){ readOnly=true; start(); }
+
+function start(){
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').style.display='block';
+  if(readOnly) document.getElementById('app').classList.add('readonly');
+  renderPosts(); renderChat();
 }
 
-/* ===== WRITE ===== */
-function setupWrite(){
-  writeBox.innerHTML='';
-  if((view==='feed'||view==='notice')&&me.role!=='artist') return;
-  if(view==='suggest'&&me.role==='artist') return;
-  const t=document.createElement('textarea'); t.id='txt'; t.placeholder='내용';
-  const f=document.createElement('input'); f.type='file'; f.accept='image/*'; f.id='img';
-  const b=document.createElement('button'); b.textContent='보내기';
-  b.onclick=()=>sendItem();
-  writeBox.append(t,f,b);
-}
-
-function sendItem(){
-  const txt=document.getElementById('txt').value;
-  const file=document.getElementById('img').files[0];
-  if(!txt && !file) return;
-  if(file){
-    const r=new FileReader();
-    r.onload=()=>pushItem(txt,r.result);
-    r.readAsDataURL(file);
-  } else pushItem(txt,null);
-}
-
-function pushItem(text,img){
-  data[view].push({id:Date.now(),author:me.id,text, img});
-  save(); render();
-}
-
-/* ===== RENDER ===== */
-function render(){
-  setupWrite(); content.innerHTML='';
-  data[view].forEach(p=>{
-    const u=users[p.author];
-    const isGroup=view==='group';
-    const side=isGroup?(u.role==='artist'?'left':'right'):'left';
-    const wrap=document.createElement('div'); wrap.className='msg-wrap';
-    const m=document.createElement('div'); m.className=`msg ${side}`;
-    m.innerHTML=`${isGroup?`<div class='name'>${u.avatar?`<img class='avatar' src='${u.avatar}'>`:''}${u.name}<span class='badge'>${u.badge||''}</span></div>`:''}<div>${p.text.replace(/\n/g,'<br>')}</div>${p.img?`<img class='msg-img' src='${p.img}'>`:''}`;
-    wrap.appendChild(m); content.appendChild(wrap);
+/* 게시글 */
+function renderPosts(){
+  const posts=JSON.parse(localStorage.getItem('posts')||'[]');
+  const box=document.getElementById('posts'); box.innerHTML='';
+  posts.forEach(p=>{
+    const d=document.createElement('div'); d.className='post';
+    d.innerHTML=`<div class='post-header'>
+      <img class='avatar' src='${p.avatar||""}' />
+      <b>${p.name}</b>
+      <span class='badge ${p.role}'>${p.role.toUpperCase()}</span>
+    </div>
+    <div class='content'>${p.text}</div>`;
+    if(p.img) d.innerHTML+=`<img src='${p.img}' style='width:100%;border-radius:8px;margin-top:6px;'/>`;
+    box.appendChild(d);
   });
 }
 
-/* ===== SETTINGS ===== */
-function openSetting(){
-  const name=prompt('이름',me.name);
-  const pw=prompt('비밀번호',me.pw);
-  const av=prompt('프사 URL',me.avatar||'');
-  if(name) users[me.id].name=me.name=name;
-  if(pw) users[me.id].pw=me.pw=pw;
-  if(av!==null) users[me.id].avatar=me.avatar=av;
-  save(); renderMe(); render();
+/* 채팅 */
+function renderChat(){
+  const chats=JSON.parse(localStorage.getItem('chats')||'[]');
+  const box=document.getElementById('chat'); box.innerHTML='';
+  chats.forEach(c=>{
+    const b=document.createElement('div');
+    b.className=`bubble ${c.role}`;
+    b.innerText=c.text;
+    box.appendChild(b);
+  });
 }
-
-/* ===== ADMIN ===== */
-function openAddUser(){
-  const id=prompt('ID'), pw=prompt('PW'), role=prompt('fan/artist'), name=prompt('이름');
-  if(id&&pw&&role){ users[id]={pw,role,name:name||id,avatar:'',badge:role==='artist'?'ARTIST':'FAN'}; save(); alert('계정 추가 완료'); }
+function sendChat(){
+  if(readOnly) return;
+  const t=document.getElementById('chatInput').value;
+  if(!t) return;
+  const chats=JSON.parse(localStorage.getItem('chats')||'[]');
+  chats.push({ text:t, role:currentUser.role });
+  localStorage.setItem('chats',JSON.stringify(chats));
+  document.getElementById('chatInput').value='';
+  renderChat();
 }
 </script>
 </body>
 </html>
+
 
