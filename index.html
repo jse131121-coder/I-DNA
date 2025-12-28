@@ -2,115 +2,195 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>Community MVP</title>
+  <title>MVP Community</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body { margin:0; font-family: Arial, sans-serif; background:#f6f6f6; }
-    .login-screen { height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:12px; }
-    input, button, textarea { padding:10px; border-radius:8px; border:1px solid #ccc; }
-    button { cursor:pointer; }
+    :root{
+      --yellow:#FFE066;
+      --yellow-soft:#FFF4B8;
+      --gray:#444;
+    }
+    *{box-sizing:border-box;font-family:system-ui, -apple-system, BlinkMacSystemFont, sans-serif}
+    body{margin:0;background:#fafafa;color:#111}
 
-    /* 공통 */
-    .post { background:#fff; border-radius:12px; padding:12px; margin-bottom:12px; }
-    .post-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
-    .avatar { width:40px; height:40px; border-radius:50%; background:#ddd; object-fit:cover; }
-    .badge { font-size:11px; padding:2px 6px; border-radius:6px; background:#eaeaea; }
-    .badge.artist { background:#c9f7c9; }
-    .content { white-space: pre-wrap; }
+    /* layout */
+    header{background:var(--yellow);padding:12px;font-weight:700;text-align:center}
+    nav{display:flex;border-bottom:1px solid #ddd}
+    nav button{flex:1;padding:12px;border:0;background:#fff;font-weight:600}
+    nav button.active{background:var(--yellow-soft)}
+    section{display:none;padding:14px}
+    section.active{display:block}
 
-    /* 채팅 */
-    .chat-box { padding:12px; }
-    .bubble { max-width:70%; padding:10px; border-radius:14px; margin:6px 0; white-space: pre-wrap; }
-    .bubble.fan { background:#fff; margin-left:auto; border-top-right-radius:0; }
-    .bubble.artist { background:#e9ffe9; margin-right:auto; border-top-left-radius:0; }
+    /* common */
+    .card{background:#fff;border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+    .row{display:flex;gap:8px;align-items:center}
+    .avatar{width:36px;height:36px;border-radius:50%;background:#ccc;flex-shrink:0}
+    .badge{font-size:11px;padding:2px 6px;border-radius:8px;background:#000;color:#fff;margin-left:6px}
+    textarea,input{width:100%;padding:8px;border-radius:8px;border:1px solid #ccc}
+    textarea{resize:vertical}
+    button.primary{background:var(--yellow);border:0;padding:8px 12px;border-radius:8px;font-weight:600}
 
-    .readonly { opacity:0.6; pointer-events:none; }
+    /* feed / notice */
+    .post-img{width:100%;border-radius:8px;margin-top:8px}
+    .comment{margin-top:8px;padding-left:44px}
+    .reply{margin-top:6px;padding-left:72px;font-size:14px}
+
+    /* chat */
+    .chat-wrap{display:flex;flex-direction:column;gap:10px}
+    .bubble{max-width:70%;padding:10px;border-radius:14px;white-space:pre-wrap}
+    .left{align-self:flex-start;background:#fff;border:1px solid #ddd}
+    .right{align-self:flex-end;background:var(--yellow)}
+    .chat-meta{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+    .chat-img{max-width:200px;border-radius:10px;margin-top:6px}
+    .chat-input{display:flex;gap:6px;margin-top:10px}
+
+    /* login */
+    #login{padding:20px}
+    #login.hidden{display:none}
   </style>
 </head>
 <body>
 
-<div id="login" class="login-screen">
-  <h2>LOGIN</h2>
-  <input id="id" placeholder="ID" />
-  <input id="pw" type="password" placeholder="PW" />
-  <button onclick="login()">로그인</button>
-  <button onclick="guest()">로그인 건너뛰기 (읽기 전용)</button>
+<header>COMMUNITY MVP</header>
+
+<div id="login">
+  <div class="card">
+    <input id="loginId" placeholder="아이디" />
+    <input id="loginPw" type="password" placeholder="비밀번호" />
+    <button class="primary" onclick="login()">로그인</button>
+    <button onclick="guest()">로그인 건너뛰기 (읽기 전용)</button>
+  </div>
 </div>
 
-<div id="app" style="display:none; padding:16px;">
-  <h2>COMMUNITY</h2>
+<div id="app" style="display:none">
+  <nav>
+    <button onclick="tab('feed')" class="active">FEED</button>
+    <button onclick="tab('chat')">CHAT</button>
+    <button onclick="tab('notice')">NOTICE</button>
+  </nav>
 
-  <!-- 피드 / 공지 / 건의 -->
-  <div id="posts"></div>
+  <!-- FEED -->
+  <section id="feed" class="active">
+    <div id="feedWrite"></div>
+    <div id="feedList"></div>
+  </section>
 
-  <!-- 채팅 -->
-  <h3>CHAT</h3>
-  <div id="chat" class="chat-box"></div>
-  <textarea id="chatInput" placeholder="메시지 입력"></textarea>
-  <button onclick="sendChat()">보내기</button>
+  <!-- CHAT -->
+  <section id="chat">
+    <div class="chat-wrap" id="chatList"></div>
+    <div class="chat-input" id="chatInput"></div>
+  </section>
+
+  <!-- NOTICE -->
+  <section id="notice">
+    <div id="noticeWrite"></div>
+    <div id="noticeList"></div>
+  </section>
 </div>
 
 <script>
-const users = JSON.parse(localStorage.getItem('users') || '{"yerin":{"pw":"1234","role":"artist","name":"예린","avatar":""}}');
-let currentUser = null;
-let readOnly = false;
+/* ---- state ---- */
+const users={ yerin:{pw:'1234',role:'admin',name:'Yerin',badge:'ADMIN'} };
+let currentUser=null;
+let readonly=false;
+const feed=JSON.parse(localStorage.getItem('feed')||'[]');
+const notice=JSON.parse(localStorage.getItem('notice')||'[]');
+const chat=JSON.parse(localStorage.getItem('chat')||'[]');
 
+/* ---- login ---- */
 function login(){
-  const id=document.getElementById('id').value;
-  const pw=document.getElementById('pw').value;
-  if(users[id] && users[id].pw===pw){
-    currentUser={id,...users[id]};
-    start();
-  } else alert('로그인 실패');
+  const id=loginId.value;const pw=loginPw.value;
+  if(users[id]&&users[id].pw===pw){currentUser={id,...users[id]};start();}
+  else alert('로그인 실패');
 }
-function guest(){ readOnly=true; start(); }
+function guest(){readonly=true;start();}
+function start(){login.classList.add('hidden');app.style.display='block';renderAll();}
 
-function start(){
-  document.getElementById('login').style.display='none';
-  document.getElementById('app').style.display='block';
-  if(readOnly) document.getElementById('app').classList.add('readonly');
-  renderPosts(); renderChat();
-}
-
-/* 게시글 */
-function renderPosts(){
-  const posts=JSON.parse(localStorage.getItem('posts')||'[]');
-  const box=document.getElementById('posts'); box.innerHTML='';
-  posts.forEach(p=>{
-    const d=document.createElement('div'); d.className='post';
-    d.innerHTML=`<div class='post-header'>
-      <img class='avatar' src='${p.avatar||""}' />
-      <b>${p.name}</b>
-      <span class='badge ${p.role}'>${p.role.toUpperCase()}</span>
-    </div>
-    <div class='content'>${p.text}</div>`;
-    if(p.img) d.innerHTML+=`<img src='${p.img}' style='width:100%;border-radius:8px;margin-top:6px;'/>`;
-    box.appendChild(d);
-  });
+/* ---- tab ---- */
+function tab(t){
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(t).classList.add('active');
 }
 
-/* 채팅 */
+/* ---- FEED ---- */
+function renderFeed(){
+  feedWrite.innerHTML='';
+  if(currentUser&&!readonly&&currentUser.role==='artist'){
+    feedWrite.innerHTML=`<div class="card">
+      <input id="ftitle" placeholder="제목" />
+      <textarea id="fbody" placeholder="내용"></textarea>
+      <input type="file" id="fimg" />
+      <button class="primary" onclick="addFeed()">등록</button>
+    </div>`;
+  }
+  feedList.innerHTML=feed.map(p=>`
+    <div class="card">
+      <div class="row"><div class="avatar"></div><b>${p.author}</b></div>
+      <h4>${p.title}</h4>
+      <div style="white-space:pre-wrap">${p.body}</div>
+      ${p.img?`<img class="post-img" src="${p.img}"/>`:''}
+      <div>${p.comments.map(c=>`<div class="comment">💬 ${c.text}${c.replies.map(r=>`<div class="reply">↳ ${r}</div>`).join('')}</div>`).join('')}</div>
+    </div>`).join('');
+}
+function addFeed(){
+  const r=new FileReader();
+  r.onload=()=>{feed.unshift({author:currentUser.name,title:ftitle.value,body:fbody.value,img:r.result,comments:[]});save();}
+  if(fimg.files[0])r.readAsDataURL(fimg.files[0]);else{feed.unshift({author:currentUser.name,title:ftitle.value,body:fbody.value,img:null,comments:[]});save();}
+}
+
+/* ---- CHAT ---- */
 function renderChat(){
-  const chats=JSON.parse(localStorage.getItem('chats')||'[]');
-  const box=document.getElementById('chat'); box.innerHTML='';
-  chats.forEach(c=>{
-    const b=document.createElement('div');
-    b.className=`bubble ${c.role}`;
-    b.innerText=c.text;
-    box.appendChild(b);
-  });
+  chatList.innerHTML=chat.map(m=>`
+    <div class="bubble ${m.side}">
+      ${m.showMeta?`<div class="chat-meta"><div class="avatar"></div><b>${m.name}</b><span class="badge">${m.badge}</span></div>`:''}
+      ${m.text}${m.img?`<img class="chat-img" src="${m.img}"/>`:''}
+    </div>`).join('');
+  chatInput.innerHTML= readonly?'':`
+    <textarea id="ctext"></textarea>
+    <input type="file" id="cimg" />
+    <button class="primary" onclick="sendChat()">전송</button>`;
 }
 function sendChat(){
-  if(readOnly) return;
-  const t=document.getElementById('chatInput').value;
-  if(!t) return;
-  const chats=JSON.parse(localStorage.getItem('chats')||'[]');
-  chats.push({ text:t, role:currentUser.role });
-  localStorage.setItem('chats',JSON.stringify(chats));
-  document.getElementById('chatInput').value='';
-  renderChat();
+  const r=new FileReader();
+  r.onload=()=>{chat.push(makeMsg(r.result));save();}
+  if(cimg.files[0])r.readAsDataURL(cimg.files[0]);else{chat.push(makeMsg(null));save();}
 }
+function makeMsg(img){
+  const isArtist=currentUser&&currentUser.role!=='fan';
+  return{ text:ctext.value, img, side:isArtist?'left':'right', name:currentUser.name, badge:currentUser.badge||'', showMeta:isArtist };
+}
+
+/* ---- NOTICE ---- */
+function renderNotice(){
+  noticeWrite.innerHTML='';
+  if(currentUser&&currentUser.id==='yerin'){
+    noticeWrite.innerHTML=`<div class="card">
+      <input id="ntitle" placeholder="공지 제목" />
+      <textarea id="nbody"></textarea>
+      <input type="file" id="nimg" />
+      <button class="primary" onclick="addNotice()">공지 등록</button>
+    </div>`;
+  }
+  noticeList.innerHTML=notice.map(p=>`
+    <div class="card">
+      <h4>${p.title}</h4>
+      <div style="white-space:pre-wrap">${p.body}</div>
+      ${p.img?`<img class="post-img" src="${p.img}"/>`:''}
+    </div>`).join('');
+}
+function addNotice(){
+  const r=new FileReader();
+  r.onload=()=>{notice.unshift({title:ntitle.value,body:nbody.value,img:r.result});save();}
+  if(nimg.files[0])r.readAsDataURL(nimg.files[0]);else{notice.unshift({title:ntitle.value,body:nbody.value,img:null});save();}
+}
+
+function save(){localStorage.setItem('feed',JSON.stringify(feed));localStorage.setItem('notice',JSON.stringify(notice));localStorage.setItem('chat',JSON.stringify(chat));renderAll();}
+function renderAll(){renderFeed();renderChat();renderNotice();}
 </script>
 </body>
 </html>
+
 
 
