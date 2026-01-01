@@ -1,52 +1,34 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<title>Twin Service</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
+<title>Twin Board</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- Firebase CDN -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
 <style>
-body {
-  font-family: system-ui;
-  background: #f7fff4;
-  margin: 0;
-  padding: 16px;
-}
-.card {
-  background: white;
-  border-radius: 14px;
-  padding: 14px;
-  margin-bottom: 14px;
-}
-button {
-  background: #a6f77b;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-.hidden { display:none }
-.badge {
-  display:inline-block;
-  width:10px;height:10px;
-  border-radius:50%;
-}
-textarea,input { width:100%; margin-top:6px }
+body{background:#f6fff3;font-family:system-ui;margin:0;padding:14px}
+.card{background:#fff;border-radius:16px;padding:14px;margin-bottom:14px;box-shadow:0 6px 20px rgba(0,0,0,.05)}
+button{background:#a6f77b;border:none;padding:8px 14px;border-radius:20px}
+input,textarea{width:100%;border:1px solid #ddd;border-radius:12px;padding:8px;margin-top:6px}
+.badge{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
+.hidden{display:none}
+.small{font-size:12px;color:#666}
+.reply{margin-left:16px;border-left:2px solid #eaeaea;padding-left:8px}
 </style>
 </head>
+
 <body>
 
-<h2>🟢 Twin Service</h2>
+<h2>🟢 Twin Space</h2>
 
 <div id="login" class="card">
   <input id="email" placeholder="email">
-  <input id="password" type="password" placeholder="password">
+  <input id="pw" type="password" placeholder="password">
   <button onclick="login()">로그인</button>
 </div>
 
@@ -65,11 +47,11 @@ textarea,input { width:100%; margin-top:6px }
 <div class="card">
   <h3>커뮤니티</h3>
   <textarea id="postText" placeholder="글 작성"></textarea>
-  <button onclick="addPost()">등록</button>
+  <button onclick="addPost()">올리기</button>
   <div id="posts"></div>
 </div>
 
-<!-- LETTERS -->
+<!-- LETTER -->
 <div class="card">
   <h3>📨 받은 편지</h3>
   <div id="letters"></div>
@@ -78,14 +60,14 @@ textarea,input { width:100%; margin-top:6px }
 <!-- CHAT -->
 <div id="chatBox" class="card hidden">
   <h3>💬 채팅</h3>
-  <input id="chatText">
-  <button onclick="sendChat()">보내기</button>
+  <input id="chatInput">
+  <button onclick="sendChat()">전송</button>
   <div id="chat"></div>
 </div>
 
 <!-- ADMIN -->
 <div id="admin" class="card hidden">
-  <h3>⚙ 관리자</h3>
+  <h3>관리자</h3>
   <button onclick="toggleChat(true)">채팅 열기</button>
   <button onclick="toggleChat(false)">채팅 닫기</button>
 </div>
@@ -93,115 +75,135 @@ textarea,input { width:100%; margin-top:6px }
 </div>
 
 <script>
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_ID",
-  storageBucket: "YOUR_BUCKET",
-  appId: "YOUR_APP_ID"
-};
+firebase.initializeApp({
+  apiKey:"YOUR_KEY",
+  authDomain:"YOUR_DOMAIN",
+  projectId:"YOUR_ID",
+  storageBucket:"YOUR_BUCKET",
+  appId:"YOUR_APP_ID"
+});
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-const storage = firebase.storage();
+const auth=firebase.auth(),db=firebase.firestore(),st=firebase.storage();
+let me,profile={};
 
-let currentUser, profile;
+auth.onAuthStateChanged(async u=>{
+ if(!u)return;
+ me=u;
+ login.classList.add("hidden");
+ app.classList.remove("hidden");
 
-auth.onAuthStateChanged(async user => {
-  if (!user) return;
-  currentUser = user;
-  document.getElementById("login").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
+ const snap=await db.collection("users").doc(u.uid).get();
+ profile=snap.exists?snap.data():{role:"free"};
 
-  const snap = await db.collection("users").doc(user.uid).get();
-  profile = snap.exists ? snap.data() : { role:"free" };
+ if(profile.role==="admin") admin.classList.remove("hidden");
 
-  if (profile.role === "admin")
-    document.getElementById("admin").classList.remove("hidden");
+ db.collection("settings").doc("chat")
+ .onSnapshot(s=>chatBox.classList.toggle("hidden",!s.data().enabled));
 
-  db.collection("settings").doc("chat").onSnapshot(s=>{
-    document.getElementById("chatBox")
-      .classList.toggle("hidden", !s.data().enabled);
-  });
-
-  loadPosts(); loadLetters(); loadChat();
+ loadPosts();loadLetters();loadChat();
 });
 
 function login(){
-  auth.signInWithEmailAndPassword(
-    email.value, password.value
-  );
+ auth.signInWithEmailAndPassword(email.value,pw.value);
 }
 
 function saveProfile(){
-  const file = avatar.files[0];
-  if(file){
-    const ref = storage.ref("avatars/"+currentUser.uid);
-    ref.put(file).then(()=>ref.getDownloadURL()
-      .then(url=>updateProfile(url)));
-  } else updateProfile();
+ const f=avatar.files[0];
+ if(f){
+  const r=st.ref("avatars/"+me.uid);
+  r.put(f).then(()=>r.getDownloadURL().then(u=>update(u)));
+ }else update();
 }
-
-function updateProfile(url){
-  db.collection("users").doc(currentUser.uid).set({
-    name:name.value,
-    badge:badge.value,
-    avatar:url||profile.avatar,
-    role:profile.role||"free"
-  },{merge:true});
+function update(url){
+ db.collection("users").doc(me.uid).set({
+  name:name.value,badge:badge.value,avatar:url||profile.avatar,role:profile.role||"free"
+ },{merge:true});
 }
 
 function addPost(){
-  db.collection("posts").add({
-    text:postText.value,
-    uid:currentUser.uid,
-    created:Date.now()
-  });
-  postText.value="";
+ db.collection("posts").add({text:postText.value,uid:me.uid,ts:Date.now()});
+ postText.value="";
 }
 
 function loadPosts(){
-  db.collection("posts").orderBy("created","desc")
-    .onSnapshot(s=>{
-      posts.innerHTML="";
-      s.forEach(d=>{
-        posts.innerHTML+=`<div>${d.data().text}</div>`;
-      });
-    });
+ db.collection("posts").orderBy("ts","desc").onSnapshot(s=>{
+  posts.innerHTML="";
+  s.forEach(d=>{
+   const id=d.id;
+   posts.innerHTML+=`
+    <div class="card">
+     ${d.data().text}
+     <input placeholder="댓글" onkeydown="if(event.key==='Enter')addComment('${id}',this)">
+     <div id="c_${id}"></div>
+    </div>`;
+   loadComments(id);
+  });
+ });
+}
+
+function addComment(pid,input){
+ db.collection("posts").doc(pid).collection("comments")
+ .add({text:input.value,uid:me.uid,ts:Date.now()});
+ input.value="";
+}
+
+function loadComments(pid){
+ db.collection("posts").doc(pid).collection("comments")
+ .orderBy("ts").onSnapshot(s=>{
+  const box=document.getElementById("c_"+pid); box.innerHTML="";
+  s.forEach(c=>{
+   const cid=c.id;
+   box.innerHTML+=`
+    <div>
+     ${c.data().text}
+     <input class="small" placeholder="대댓글" 
+      onkeydown="if(event.key==='Enter')addReply('${pid}','${cid}',this)">
+     <div id="r_${cid}" class="reply"></div>
+    </div>`;
+   loadReplies(pid,cid);
+  });
+ });
+}
+
+function addReply(pid,cid,input){
+ db.collection("posts").doc(pid)
+ .collection("comments").doc(cid)
+ .collection("replies").add({text:input.value,uid:me.uid,ts:Date.now()});
+ input.value="";
+}
+
+function loadReplies(pid,cid){
+ db.collection("posts").doc(pid)
+ .collection("comments").doc(cid)
+ .collection("replies").orderBy("ts")
+ .onSnapshot(s=>{
+  const box=document.getElementById("r_"+cid); box.innerHTML="";
+  s.forEach(r=>box.innerHTML+=`<div>${r.data().text}</div>`);
+ });
 }
 
 function loadLetters(){
-  db.collection("letters")
-    .where("to","==",currentUser.uid)
-    .onSnapshot(s=>{
-      letters.innerHTML="";
-      s.forEach(d=>{
-        letters.innerHTML+=`<div>${d.data().text}</div>`;
-      });
-    });
+ db.collection("letters").where("to","==",me.uid)
+ .onSnapshot(s=>{
+  letters.innerHTML="";
+  s.forEach(l=>letters.innerHTML+=`<div>${l.data().text}</div>`);
+ });
 }
 
 function toggleChat(v){
-  db.collection("settings").doc("chat").set({enabled:v});
+ db.collection("settings").doc("chat").set({enabled:v});
 }
 
 function sendChat(){
-  db.collection("chat").add({
-    text:chatText.value,
-    uid:currentUser.uid
-  });
-  chatText.value="";
+ db.collection("chat").add({text:chatInput.value,ts:Date.now()});
+ chatInput.value="";
 }
 
 function loadChat(){
-  db.collection("chat").orderBy("created")
-    .onSnapshot(s=>{
-      chat.innerHTML="";
-      s.forEach(d=>{
-        chat.innerHTML+=`<div>${d.data().text}</div>`;
-      });
-    });
+ db.collection("chat").orderBy("ts").onSnapshot(s=>{
+  chat.innerHTML="";
+  s.forEach(m=>chat.innerHTML+=`<div>${m.data().text}</div>`);
+ });
 }
 </script>
 </body>
