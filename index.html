@@ -1,196 +1,209 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>MVP Community</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    :root{
-      --yellow:#FFE066;
-      --yellow-soft:#FFF4B8;
-      --gray:#444;
-    }
-    *{box-sizing:border-box;font-family:system-ui, -apple-system, BlinkMacSystemFont, sans-serif}
-    body{margin:0;background:#fafafa;color:#111}
+<meta charset="UTF-8" />
+<title>Twin Service</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    /* layout */
-    header{background:var(--yellow);padding:12px;font-weight:700;text-align:center}
-    nav{display:flex;border-bottom:1px solid #ddd}
-    nav button{flex:1;padding:12px;border:0;background:#fff;font-weight:600}
-    nav button.active{background:var(--yellow-soft)}
-    section{display:none;padding:14px}
-    section.active{display:block}
+<!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
-    /* common */
-    .card{background:#fff;border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-    .row{display:flex;gap:8px;align-items:center}
-    .avatar{width:36px;height:36px;border-radius:50%;background:#ccc;flex-shrink:0}
-    .badge{font-size:11px;padding:2px 6px;border-radius:8px;background:#000;color:#fff;margin-left:6px}
-    textarea,input{width:100%;padding:8px;border-radius:8px;border:1px solid #ccc}
-    textarea{resize:vertical}
-    button.primary{background:var(--yellow);border:0;padding:8px 12px;border-radius:8px;font-weight:600}
-
-    /* feed / notice */
-    .post-img{width:100%;border-radius:8px;margin-top:8px}
-    .comment{margin-top:8px;padding-left:44px}
-    .reply{margin-top:6px;padding-left:72px;font-size:14px}
-
-    /* chat */
-    .chat-wrap{display:flex;flex-direction:column;gap:10px}
-    .bubble{max-width:70%;padding:10px;border-radius:14px;white-space:pre-wrap}
-    .left{align-self:flex-start;background:#fff;border:1px solid #ddd}
-    .right{align-self:flex-end;background:var(--yellow)}
-    .chat-meta{display:flex;align-items:center;gap:6px;margin-bottom:2px}
-    .chat-img{max-width:200px;border-radius:10px;margin-top:6px}
-    .chat-input{display:flex;gap:6px;margin-top:10px}
-
-    /* login */
-    #login{padding:20px}
-    #login.hidden{display:none}
-  </style>
+<style>
+body {
+  font-family: system-ui;
+  background: #f7fff4;
+  margin: 0;
+  padding: 16px;
+}
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+button {
+  background: #a6f77b;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.hidden { display:none }
+.badge {
+  display:inline-block;
+  width:10px;height:10px;
+  border-radius:50%;
+}
+textarea,input { width:100%; margin-top:6px }
+</style>
 </head>
 <body>
 
-<header>COMMUNITY MVP</header>
+<h2>🟢 Twin Service</h2>
 
-<div id="login">
-  <div class="card">
-    <input id="loginId" placeholder="아이디" />
-    <input id="loginPw" type="password" placeholder="비밀번호" />
-    <button class="primary" onclick="login()">로그인</button>
-    <button onclick="guest()">로그인 건너뛰기 (읽기 전용)</button>
-  </div>
+<div id="login" class="card">
+  <input id="email" placeholder="email">
+  <input id="password" type="password" placeholder="password">
+  <button onclick="login()">로그인</button>
 </div>
 
-<div id="app" style="display:none">
-  <nav>
-    <button onclick="tab('feed')" class="active">FEED</button>
-    <button onclick="tab('chat')">CHAT</button>
-    <button onclick="tab('notice')">NOTICE</button>
-  </nav>
+<div id="app" class="hidden">
 
-  <!-- FEED -->
-  <section id="feed" class="active">
-    <div id="feedWrite"></div>
-    <div id="feedList"></div>
-  </section>
+<!-- PROFILE -->
+<div class="card">
+  <h3>프로필</h3>
+  <input id="name" placeholder="이름">
+  <input id="badge" placeholder="#A6F77B">
+  <input type="file" id="avatar">
+  <button onclick="saveProfile()">저장</button>
+</div>
 
-  <!-- CHAT -->
-  <section id="chat">
-    <div class="chat-wrap" id="chatList"></div>
-    <div class="chat-input" id="chatInput"></div>
-  </section>
+<!-- COMMUNITY -->
+<div class="card">
+  <h3>커뮤니티</h3>
+  <textarea id="postText" placeholder="글 작성"></textarea>
+  <button onclick="addPost()">등록</button>
+  <div id="posts"></div>
+</div>
 
-  <!-- NOTICE -->
-  <section id="notice">
-    <div id="noticeWrite"></div>
-    <div id="noticeList"></div>
-  </section>
+<!-- LETTERS -->
+<div class="card">
+  <h3>📨 받은 편지</h3>
+  <div id="letters"></div>
+</div>
+
+<!-- CHAT -->
+<div id="chatBox" class="card hidden">
+  <h3>💬 채팅</h3>
+  <input id="chatText">
+  <button onclick="sendChat()">보내기</button>
+  <div id="chat"></div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin" class="card hidden">
+  <h3>⚙ 관리자</h3>
+  <button onclick="toggleChat(true)">채팅 열기</button>
+  <button onclick="toggleChat(false)">채팅 닫기</button>
+</div>
+
 </div>
 
 <script>
-/* ---- state ---- */
-const users={ yerin:{pw:'1234',role:'admin',name:'Yerin',badge:'ADMIN'} };
-let currentUser=null;
-let readonly=false;
-const feed=JSON.parse(localStorage.getItem('feed')||'[]');
-const notice=JSON.parse(localStorage.getItem('notice')||'[]');
-const chat=JSON.parse(localStorage.getItem('chat')||'[]');
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_ID",
+  storageBucket: "YOUR_BUCKET",
+  appId: "YOUR_APP_ID"
+};
 
-/* ---- login ---- */
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+let currentUser, profile;
+
+auth.onAuthStateChanged(async user => {
+  if (!user) return;
+  currentUser = user;
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+
+  const snap = await db.collection("users").doc(user.uid).get();
+  profile = snap.exists ? snap.data() : { role:"free" };
+
+  if (profile.role === "admin")
+    document.getElementById("admin").classList.remove("hidden");
+
+  db.collection("settings").doc("chat").onSnapshot(s=>{
+    document.getElementById("chatBox")
+      .classList.toggle("hidden", !s.data().enabled);
+  });
+
+  loadPosts(); loadLetters(); loadChat();
+});
+
 function login(){
-  const id=loginId.value;const pw=loginPw.value;
-  if(users[id]&&users[id].pw===pw){currentUser={id,...users[id]};start();}
-  else alert('로그인 실패');
-}
-function guest(){readonly=true;start();}
-function start(){login.classList.add('hidden');app.style.display='block';renderAll();}
-
-/* ---- tab ---- */
-function tab(t){
-  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-  event.target.classList.add('active');
-  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
-  document.getElementById(t).classList.add('active');
+  auth.signInWithEmailAndPassword(
+    email.value, password.value
+  );
 }
 
-/* ---- FEED ---- */
-function renderFeed(){
-  feedWrite.innerHTML='';
-  if(currentUser&&!readonly&&currentUser.role==='artist'){
-    feedWrite.innerHTML=`<div class="card">
-      <input id="ftitle" placeholder="제목" />
-      <textarea id="fbody" placeholder="내용"></textarea>
-      <input type="file" id="fimg" />
-      <button class="primary" onclick="addFeed()">등록</button>
-    </div>`;
-  }
-  feedList.innerHTML=feed.map(p=>`
-    <div class="card">
-      <div class="row"><div class="avatar"></div><b>${p.author}</b></div>
-      <h4>${p.title}</h4>
-      <div style="white-space:pre-wrap">${p.body}</div>
-      ${p.img?`<img class="post-img" src="${p.img}"/>`:''}
-      <div>${p.comments.map(c=>`<div class="comment">💬 ${c.text}${c.replies.map(r=>`<div class="reply">↳ ${r}</div>`).join('')}</div>`).join('')}</div>
-    </div>`).join('');
-}
-function addFeed(){
-  const r=new FileReader();
-  r.onload=()=>{feed.unshift({author:currentUser.name,title:ftitle.value,body:fbody.value,img:r.result,comments:[]});save();}
-  if(fimg.files[0])r.readAsDataURL(fimg.files[0]);else{feed.unshift({author:currentUser.name,title:ftitle.value,body:fbody.value,img:null,comments:[]});save();}
+function saveProfile(){
+  const file = avatar.files[0];
+  if(file){
+    const ref = storage.ref("avatars/"+currentUser.uid);
+    ref.put(file).then(()=>ref.getDownloadURL()
+      .then(url=>updateProfile(url)));
+  } else updateProfile();
 }
 
-/* ---- CHAT ---- */
-function renderChat(){
-  chatList.innerHTML=chat.map(m=>`
-    <div class="bubble ${m.side}">
-      ${m.showMeta?`<div class="chat-meta"><div class="avatar"></div><b>${m.name}</b><span class="badge">${m.badge}</span></div>`:''}
-      ${m.text}${m.img?`<img class="chat-img" src="${m.img}"/>`:''}
-    </div>`).join('');
-  chatInput.innerHTML= readonly?'':`
-    <textarea id="ctext"></textarea>
-    <input type="file" id="cimg" />
-    <button class="primary" onclick="sendChat()">전송</button>`;
+function updateProfile(url){
+  db.collection("users").doc(currentUser.uid).set({
+    name:name.value,
+    badge:badge.value,
+    avatar:url||profile.avatar,
+    role:profile.role||"free"
+  },{merge:true});
 }
+
+function addPost(){
+  db.collection("posts").add({
+    text:postText.value,
+    uid:currentUser.uid,
+    created:Date.now()
+  });
+  postText.value="";
+}
+
+function loadPosts(){
+  db.collection("posts").orderBy("created","desc")
+    .onSnapshot(s=>{
+      posts.innerHTML="";
+      s.forEach(d=>{
+        posts.innerHTML+=`<div>${d.data().text}</div>`;
+      });
+    });
+}
+
+function loadLetters(){
+  db.collection("letters")
+    .where("to","==",currentUser.uid)
+    .onSnapshot(s=>{
+      letters.innerHTML="";
+      s.forEach(d=>{
+        letters.innerHTML+=`<div>${d.data().text}</div>`;
+      });
+    });
+}
+
+function toggleChat(v){
+  db.collection("settings").doc("chat").set({enabled:v});
+}
+
 function sendChat(){
-  const r=new FileReader();
-  r.onload=()=>{chat.push(makeMsg(r.result));save();}
-  if(cimg.files[0])r.readAsDataURL(cimg.files[0]);else{chat.push(makeMsg(null));save();}
-}
-function makeMsg(img){
-  const isArtist=currentUser&&currentUser.role!=='fan';
-  return{ text:ctext.value, img, side:isArtist?'left':'right', name:currentUser.name, badge:currentUser.badge||'', showMeta:isArtist };
+  db.collection("chat").add({
+    text:chatText.value,
+    uid:currentUser.uid
+  });
+  chatText.value="";
 }
 
-/* ---- NOTICE ---- */
-function renderNotice(){
-  noticeWrite.innerHTML='';
-  if(currentUser&&currentUser.id==='yerin'){
-    noticeWrite.innerHTML=`<div class="card">
-      <input id="ntitle" placeholder="공지 제목" />
-      <textarea id="nbody"></textarea>
-      <input type="file" id="nimg" />
-      <button class="primary" onclick="addNotice()">공지 등록</button>
-    </div>`;
-  }
-  noticeList.innerHTML=notice.map(p=>`
-    <div class="card">
-      <h4>${p.title}</h4>
-      <div style="white-space:pre-wrap">${p.body}</div>
-      ${p.img?`<img class="post-img" src="${p.img}"/>`:''}
-    </div>`).join('');
+function loadChat(){
+  db.collection("chat").orderBy("created")
+    .onSnapshot(s=>{
+      chat.innerHTML="";
+      s.forEach(d=>{
+        chat.innerHTML+=`<div>${d.data().text}</div>`;
+      });
+    });
 }
-function addNotice(){
-  const r=new FileReader();
-  r.onload=()=>{notice.unshift({title:ntitle.value,body:nbody.value,img:r.result});save();}
-  if(nimg.files[0])r.readAsDataURL(nimg.files[0]);else{notice.unshift({title:ntitle.value,body:nbody.value,img:null});save();}
-}
-
-function save(){localStorage.setItem('feed',JSON.stringify(feed));localStorage.setItem('notice',JSON.stringify(notice));localStorage.setItem('chat',JSON.stringify(chat));renderAll();}
-function renderAll(){renderFeed();renderChat();renderNotice();}
 </script>
 </body>
 </html>
-
-
 
