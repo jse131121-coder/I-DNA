@@ -1,211 +1,233 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>Twin Board</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8" />
+<title>AND, JIN</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
-body{background:#f6fff3;font-family:system-ui;margin:0;padding:14px}
-.card{background:#fff;border-radius:16px;padding:14px;margin-bottom:14px;box-shadow:0 6px 20px rgba(0,0,0,.05)}
-button{background:#a6f77b;border:none;padding:8px 14px;border-radius:20px}
-input,textarea{width:100%;border:1px solid #ddd;border-radius:12px;padding:8px;margin-top:6px}
-.badge{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
-.hidden{display:none}
-.small{font-size:12px;color:#666}
-.reply{margin-left:16px;border-left:2px solid #eaeaea;padding-left:8px}
+body{
+  margin:0;
+  font-family: Pretendard, sans-serif;
+  background: linear-gradient(#ffb6a8,#ffd7cc);
+}
+.page{display:none;padding:16px}
+.active{display:block}
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 8px 20px rgba(0,0,0,.08)
+}
+input,textarea{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  margin-bottom:8px;
+}
+button{
+  background:#ff6f61;
+  border:none;
+  color:#fff;
+  padding:10px;
+  border-radius:10px;
+  cursor:pointer;
+}
+.nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#ffeae3;
+  display:flex;
+  justify-content:space-around;
+  padding:10px 0;
+}
+.badge{color:#ff6f61;font-size:12px}
+.comment{margin-left:12px;font-size:13px}
+.reply{margin-left:24px;font-size:12px;color:#555}
 </style>
 </head>
 
 <body>
 
-<h2>🟢 Twin Space</h2>
-
-<div id="login" class="card">
-  <input id="email" placeholder="email">
-  <input id="pw" type="password" placeholder="password">
-  <button onclick="login()">로그인</button>
+<!-- LOGIN -->
+<div id="login" class="page active">
+  <div class="card">
+    <h2>AND, JIN</h2>
+    <input id="email" placeholder="이메일">
+    <input id="password" type="password" placeholder="비밀번호">
+    <button onclick="login()">로그인</button>
+  </div>
 </div>
 
-<div id="app" class="hidden">
-
-<!-- PROFILE -->
-<div class="card">
-  <h3>프로필</h3>
-  <input id="name" placeholder="이름">
-  <input id="badge" placeholder="#A6F77B">
-  <input type="file" id="avatar">
-  <button onclick="saveProfile()">저장</button>
+<!-- HOME -->
+<div id="home" class="page">
+  <div class="card">
+    <h2>BAEK AH JIN</h2>
+    <img src="https://placehold.co/300x300" width="100%">
+  </div>
 </div>
 
 <!-- COMMUNITY -->
-<div class="card">
-  <h3>커뮤니티</h3>
+<div id="community" class="page">
   <textarea id="postText" placeholder="글 작성"></textarea>
-  <button onclick="addPost()">올리기</button>
+  <button onclick="addPost()">등록</button>
   <div id="posts"></div>
 </div>
 
-<!-- LETTER -->
-<div class="card">
-  <h3>📨 받은 편지</h3>
-  <div id="letters"></div>
-</div>
-
 <!-- CHAT -->
-<div id="chatBox" class="card hidden">
-  <h3>💬 채팅</h3>
-  <input id="chatInput">
-  <button onclick="sendChat()">전송</button>
-  <div id="chat"></div>
+<div id="chat" class="page">
+  <div id="chatBox"></div>
+  <input id="chatInput" placeholder="메시지">
+  <button onclick="sendChat()">보내기</button>
 </div>
 
-<!-- ADMIN -->
-<div id="admin" class="card hidden">
-  <h3>관리자</h3>
-  <button onclick="toggleChat(true)">채팅 열기</button>
-  <button onclick="toggleChat(false)">채팅 닫기</button>
+<!-- LETTER -->
+<div id="letter" class="page">
+  <textarea id="letterText" placeholder="나에게 하고 싶은 말을 보내줘!"></textarea>
+  <button onclick="sendLetter()">보내기 ✈️</button>
+  <div id="letterList"></div>
 </div>
 
+<!-- NAV -->
+<div class="nav">
+  <div onclick="show('home')">홈</div>
+  <div onclick="show('community')">커뮤니티</div>
+  <div onclick="show('chat')">채팅</div>
+  <div onclick="show('letter')">편지</div>
 </div>
 
 <script>
-firebase.initializeApp({
+const firebaseConfig={
   apiKey:"YOUR_KEY",
-  authDomain:"YOUR_DOMAIN",
-  projectId:"YOUR_ID",
-  storageBucket:"YOUR_BUCKET",
-  appId:"YOUR_APP_ID"
-});
+  authDomain:"YOUR_PROJECT.firebaseapp.com",
+  projectId:"YOUR_PROJECT_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+let role="fan";
 
-const auth=firebase.auth(),db=firebase.firestore(),st=firebase.storage();
-let me,profile={};
-
-auth.onAuthStateChanged(async u=>{
- if(!u)return;
- me=u;
- login.classList.add("hidden");
- app.classList.remove("hidden");
-
- const snap=await db.collection("users").doc(u.uid).get();
- profile=snap.exists?snap.data():{role:"free"};
-
- if(profile.role==="admin") admin.classList.remove("hidden");
-
- db.collection("settings").doc("chat")
- .onSnapshot(s=>chatBox.classList.toggle("hidden",!s.data().enabled));
-
- loadPosts();loadLetters();loadChat();
-});
+function show(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
 
 function login(){
- auth.signInWithEmailAndPassword(email.value,pw.value);
-}
-
-function saveProfile(){
- const f=avatar.files[0];
- if(f){
-  const r=st.ref("avatars/"+me.uid);
-  r.put(f).then(()=>r.getDownloadURL().then(u=>update(u)));
- }else update();
-}
-function update(url){
- db.collection("users").doc(me.uid).set({
-  name:name.value,badge:badge.value,avatar:url||profile.avatar,role:profile.role||"free"
- },{merge:true});
+  auth.signInWithEmailAndPassword(email.value,password.value)
+  .then(res=>{
+    role = res.user.email.includes("ahjin") ? "artist" : "fan";
+    show("home");
+    loadPosts();
+    loadChat();
+    loadLetters();
+  });
 }
 
 function addPost(){
- db.collection("posts").add({text:postText.value,uid:me.uid,ts:Date.now()});
- postText.value="";
+  db.collection("posts").add({
+    text:postText.value,
+    role,
+    time:Date.now()
+  });
+  postText.value="";
 }
 
 function loadPosts(){
- db.collection("posts").orderBy("ts","desc").onSnapshot(s=>{
-  posts.innerHTML="";
-  s.forEach(d=>{
-   const id=d.id;
-   posts.innerHTML+=`
-    <div class="card">
-     ${d.data().text}
-     <input placeholder="댓글" onkeydown="if(event.key==='Enter')addComment('${id}',this)">
-     <div id="c_${id}"></div>
-    </div>`;
-   loadComments(id);
+  db.collection("posts").orderBy("time","desc")
+  .onSnapshot(s=>{
+    posts.innerHTML="";
+    s.forEach(d=>{
+      const p=d.data();
+      let html=`<div class="card">
+      <b>${p.role==="artist"?"아진이 🎀 <span class='badge'>✔</span>":"fan"}</b>
+      <p>${p.text}</p>
+      <input placeholder="댓글" onkeydown="if(event.key==='Enter') addComment('${d.id}',this.value)">
+      <div id="c_${d.id}"></div></div>`;
+      posts.innerHTML+=html;
+      loadComments(d.id);
+    });
   });
- });
 }
 
-function addComment(pid,input){
- db.collection("posts").doc(pid).collection("comments")
- .add({text:input.value,uid:me.uid,ts:Date.now()});
- input.value="";
+function addComment(pid,text){
+  db.collection("posts").doc(pid).collection("comments").add({
+    text,role,time:Date.now()
+  });
 }
 
 function loadComments(pid){
- db.collection("posts").doc(pid).collection("comments")
- .orderBy("ts").onSnapshot(s=>{
-  const box=document.getElementById("c_"+pid); box.innerHTML="";
-  s.forEach(c=>{
-   const cid=c.id;
-   box.innerHTML+=`
-    <div>
-     ${c.data().text}
-     <input class="small" placeholder="대댓글" 
-      onkeydown="if(event.key==='Enter')addReply('${pid}','${cid}',this)">
-     <div id="r_${cid}" class="reply"></div>
-    </div>`;
-   loadReplies(pid,cid);
+  db.collection("posts").doc(pid).collection("comments")
+  .orderBy("time")
+  .onSnapshot(s=>{
+    const box=document.getElementById("c_"+pid);
+    box.innerHTML="";
+    s.forEach(d=>{
+      const c=d.data();
+      box.innerHTML+=`
+      <div class="comment">
+      ${c.role==="artist"?"🎀 아진이":"fan"}: ${c.text}
+      ${role==="artist" && c.role!=="artist"
+        ? `<div class="reply" onclick="reply('${pid}','${d.id}')">↳ 대댓글</div>`:""}
+      </div>`;
+    });
   });
- });
 }
 
-function addReply(pid,cid,input){
- db.collection("posts").doc(pid)
- .collection("comments").doc(cid)
- .collection("replies").add({text:input.value,uid:me.uid,ts:Date.now()});
- input.value="";
-}
-
-function loadReplies(pid,cid){
- db.collection("posts").doc(pid)
- .collection("comments").doc(cid)
- .collection("replies").orderBy("ts")
- .onSnapshot(s=>{
-  const box=document.getElementById("r_"+cid); box.innerHTML="";
-  s.forEach(r=>box.innerHTML+=`<div>${r.data().text}</div>`);
- });
-}
-
-function loadLetters(){
- db.collection("letters").where("to","==",me.uid)
- .onSnapshot(s=>{
-  letters.innerHTML="";
-  s.forEach(l=>letters.innerHTML+=`<div>${l.data().text}</div>`);
- });
-}
-
-function toggleChat(v){
- db.collection("settings").doc("chat").set({enabled:v});
+function reply(pid,cid){
+  const text=prompt("대댓글");
+  if(!text)return;
+  db.collection("posts").doc(pid)
+  .collection("comments").doc(cid)
+  .collection("reply").add({
+    text,time:Date.now()
+  });
 }
 
 function sendChat(){
- db.collection("chat").add({text:chatInput.value,ts:Date.now()});
- chatInput.value="";
+  db.collection("chat").add({
+    text:chatInput.value,
+    role,time:Date.now()
+  });
+  chatInput.value="";
 }
 
 function loadChat(){
- db.collection("chat").orderBy("ts").onSnapshot(s=>{
-  chat.innerHTML="";
-  s.forEach(m=>chat.innerHTML+=`<div>${m.data().text}</div>`);
- });
+  db.collection("chat").orderBy("time")
+  .onSnapshot(s=>{
+    chatBox.innerHTML="";
+    s.forEach(d=>{
+      chatBox.innerHTML+=`<p>${d.data().role}: ${d.data().text}</p>`;
+    });
+  });
+}
+
+function sendLetter(){
+  db.collection("letters").add({
+    text:letterText.value,
+    time:Date.now()
+  });
+  letterText.value="";
+}
+
+function loadLetters(){
+  if(role!=="artist")return;
+  db.collection("letters").orderBy("time","desc")
+  .onSnapshot(s=>{
+    letterList.innerHTML="";
+    s.forEach(d=>{
+      letterList.innerHTML+=`<div class="card">${d.data().text}</div>`;
+    });
+  });
 }
 </script>
 </body>
 </html>
-
