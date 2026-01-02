@@ -2,232 +2,245 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
-<title>AND, JIN</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AINI</title>
 
 <style>
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont}
 body{
   margin:0;
-  font-family: Pretendard, sans-serif;
-  background: linear-gradient(#ffb6a8,#ffd7cc);
+  background:#ffd6d6;
 }
-.page{display:none;padding:16px}
-.active{display:block}
+.hidden{display:none}
+
+/* 로그인 팝업 */
+#loginModal{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.4);
+  display:flex; align-items:center; justify-content:center;
+}
+#loginBox{
+  background:#fff;
+  padding:24px;
+  width:280px;
+  border-radius:18px;
+  text-align:center;
+}
+#loginBox button{
+  width:100%; margin-top:10px;
+  padding:10px;
+  border:none; border-radius:12px;
+  background:#ff8a8a; color:#fff;
+  font-weight:bold;
+}
+
+/* 헤더 */
+header{
+  padding:14px;
+  background:#ffb3b3;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.badge{
+  background:#000; color:#fff;
+  padding:4px 10px; border-radius:20px;
+  font-size:12px;
+}
+
+/* 메인 */
+main{padding:14px 14px 70px}
 .card{
   background:#fff;
   border-radius:16px;
   padding:14px;
-  margin-bottom:12px;
-  box-shadow:0 8px 20px rgba(0,0,0,.08)
+  margin-bottom:14px;
 }
-input,textarea{
-  width:100%;
+
+/* 커뮤니티 */
+.post{margin-bottom:16px}
+.comment{font-size:13px;margin-top:6px}
+.reply{margin-left:14px;color:#ff6b6b}
+
+/* 채팅 */
+.chat{
+  background:#fff;
+  border-radius:16px;
+  padding:12px;
+  height:60vh;
+  overflow-y:auto;
+}
+.bubble{
   padding:10px;
-  border-radius:10px;
-  border:1px solid #ddd;
-  margin-bottom:8px;
+  border-radius:14px;
+  margin:6px 0;
+  max-width:80%;
 }
-button{
-  background:#ff6f61;
-  border:none;
-  color:#fff;
-  padding:10px;
-  border-radius:10px;
-  cursor:pointer;
-}
-.nav{
+.me{background:#ff8a8a;color:#fff;margin-left:auto}
+.other{background:#f2f2f2}
+
+/* 입력 */
+.inputBox{
   position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#ffeae3;
-  display:flex;
-  justify-content:space-around;
-  padding:10px 0;
+  bottom:60px; left:0; right:0;
+  display:flex; padding:10px;
 }
-.badge{color:#ff6f61;font-size:12px}
-.comment{margin-left:12px;font-size:13px}
-.reply{margin-left:24px;font-size:12px;color:#555}
+.inputBox input{
+  flex:1; padding:10px;
+  border-radius:20px; border:none;
+}
+.inputBox button{
+  margin-left:8px;
+  background:#ff8a8a;
+  border:none; border-radius:20px;
+  padding:0 16px; color:#fff;
+}
+
+/* 하단 탭 */
+nav{
+  position:fixed;
+  bottom:0; left:0; right:0;
+  display:flex;
+  background:#ffecec;
+}
+nav button{
+  flex:1;
+  padding:12px;
+  border:none;
+  background:none;
+}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="login" class="page active">
-  <div class="card">
-    <h2>AND, JIN</h2>
-    <input id="email" placeholder="이메일">
-    <input id="password" type="password" placeholder="비밀번호">
-    <button onclick="login()">로그인</button>
+<!-- 로그인 -->
+<div id="loginModal">
+  <div id="loginBox">
+    <h3>로그인</h3>
+    <button onclick="login('fan')">팬으로 로그인</button>
+    <button onclick="login('artist')">아티스트로 로그인</button>
   </div>
 </div>
 
-<!-- HOME -->
-<div id="home" class="page">
-  <div class="card">
-    <h2>BAEK AH JIN</h2>
-    <img src="https://placehold.co/300x300" width="100%">
-  </div>
-</div>
+<header>
+  <div>AINI 💗</div>
+  <div id="role" class="badge"></div>
+</header>
 
-<!-- COMMUNITY -->
-<div id="community" class="page">
-  <textarea id="postText" placeholder="글 작성"></textarea>
-  <button onclick="addPost()">등록</button>
-  <div id="posts"></div>
-</div>
+<main>
+  <!-- 홈 -->
+  <section id="home" class="card">환영합니다!</section>
 
-<!-- CHAT -->
-<div id="chat" class="page">
-  <div id="chatBox"></div>
-  <input id="chatInput" placeholder="메시지">
-  <button onclick="sendChat()">보내기</button>
-</div>
+  <!-- 커뮤니티 -->
+  <section id="community" class="hidden">
+    <div class="card">
+      <input id="postInput" placeholder="글 작성..." />
+      <button onclick="addPost()">등록</button>
+    </div>
+    <div id="postList"></div>
+  </section>
 
-<!-- LETTER -->
-<div id="letter" class="page">
-  <textarea id="letterText" placeholder="나에게 하고 싶은 말을 보내줘!"></textarea>
-  <button onclick="sendLetter()">보내기 ✈️</button>
-  <div id="letterList"></div>
-</div>
+  <!-- 채팅 -->
+  <section id="chat" class="hidden">
+    <div class="chat" id="chatBox"></div>
+    <div class="inputBox">
+      <input id="chatInput" placeholder="메시지 입력"/>
+      <button onclick="sendChat()">send</button>
+    </div>
+  </section>
 
-<!-- NAV -->
-<div class="nav">
-  <div onclick="show('home')">홈</div>
-  <div onclick="show('community')">커뮤니티</div>
-  <div onclick="show('chat')">채팅</div>
-  <div onclick="show('letter')">편지</div>
-</div>
+  <!-- 편지 -->
+  <section id="letter" class="hidden">
+    <div class="card">💌 편지함 (연출용)</div>
+  </section>
+</main>
+
+<nav>
+  <button onclick="show('home')">홈</button>
+  <button onclick="show('community')">커뮤니티</button>
+  <button onclick="show('chat')">채팅</button>
+  <button onclick="show('letter')">편지</button>
+</nav>
 
 <script>
-const firebaseConfig={
-  apiKey:"YOUR_KEY",
-  authDomain:"YOUR_PROJECT.firebaseapp.com",
-  projectId:"YOUR_PROJECT_ID"
-};
-firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth();
-const db=firebase.firestore();
-let role="fan";
+let user = null;
+let posts = JSON.parse(localStorage.getItem('posts')||'[]');
+let chats = JSON.parse(localStorage.getItem('chats')||'[]');
 
-function show(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+function login(type){
+  user = type;
+  document.getElementById('role').innerText =
+    type === 'artist' ? 'ARTIST ✔' : 'FAN';
+  document.getElementById('loginModal').style.display='none';
+  render();
 }
 
-function login(){
-  auth.signInWithEmailAndPassword(email.value,password.value)
-  .then(res=>{
-    role = res.user.email.includes("ahjin") ? "artist" : "fan";
-    show("home");
-    loadPosts();
-    loadChat();
-    loadLetters();
-  });
+function show(id){
+  document.querySelectorAll('main section')
+    .forEach(s=>s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
 }
 
 function addPost(){
-  db.collection("posts").add({
-    text:postText.value,
-    role,
-    time:Date.now()
-  });
-  postText.value="";
+  const text = postInput.value;
+  if(!text) return;
+  posts.push({text,comments:[]});
+  localStorage.setItem('posts',JSON.stringify(posts));
+  postInput.value='';
+  render();
 }
 
-function loadPosts(){
-  db.collection("posts").orderBy("time","desc")
-  .onSnapshot(s=>{
-    posts.innerHTML="";
-    s.forEach(d=>{
-      const p=d.data();
-      let html=`<div class="card">
-      <b>${p.role==="artist"?"아진이 🎀 <span class='badge'>✔</span>":"fan"}</b>
-      <p>${p.text}</p>
-      <input placeholder="댓글" onkeydown="if(event.key==='Enter') addComment('${d.id}',this.value)">
-      <div id="c_${d.id}"></div></div>`;
-      posts.innerHTML+=html;
-      loadComments(d.id);
-    });
-  });
+function addComment(i){
+  const txt = prompt("댓글");
+  if(!txt) return;
+  posts[i].comments.push({text:txt,replies:[]});
+  save();
 }
 
-function addComment(pid,text){
-  db.collection("posts").doc(pid).collection("comments").add({
-    text,role,time:Date.now()
-  });
-}
-
-function loadComments(pid){
-  db.collection("posts").doc(pid).collection("comments")
-  .orderBy("time")
-  .onSnapshot(s=>{
-    const box=document.getElementById("c_"+pid);
-    box.innerHTML="";
-    s.forEach(d=>{
-      const c=d.data();
-      box.innerHTML+=`
-      <div class="comment">
-      ${c.role==="artist"?"🎀 아진이":"fan"}: ${c.text}
-      ${role==="artist" && c.role!=="artist"
-        ? `<div class="reply" onclick="reply('${pid}','${d.id}')">↳ 대댓글</div>`:""}
-      </div>`;
-    });
-  });
-}
-
-function reply(pid,cid){
-  const text=prompt("대댓글");
-  if(!text)return;
-  db.collection("posts").doc(pid)
-  .collection("comments").doc(cid)
-  .collection("reply").add({
-    text,time:Date.now()
-  });
+function addReply(p,c){
+  if(user!=='artist') return alert("아티스트만 가능");
+  const txt = prompt("대댓글");
+  posts[p].comments[c].replies.push(txt);
+  save();
 }
 
 function sendChat(){
-  db.collection("chat").add({
-    text:chatInput.value,
-    role,time:Date.now()
-  });
-  chatInput.value="";
+  const t = chatInput.value;
+  if(!t) return;
+  chats.push({me:true,text:t});
+  localStorage.setItem('chats',JSON.stringify(chats));
+  chatInput.value='';
+  render();
 }
 
-function loadChat(){
-  db.collection("chat").orderBy("time")
-  .onSnapshot(s=>{
-    chatBox.innerHTML="";
-    s.forEach(d=>{
-      chatBox.innerHTML+=`<p>${d.data().role}: ${d.data().text}</p>`;
-    });
-  });
+function save(){
+  localStorage.setItem('posts',JSON.stringify(posts));
+  render();
 }
 
-function sendLetter(){
-  db.collection("letters").add({
-    text:letterText.value,
-    time:Date.now()
+function render(){
+  postList.innerHTML='';
+  posts.forEach((p,i)=>{
+    let html=`<div class="card post">${p.text}`;
+    p.comments.forEach((c,ci)=>{
+      html+=`<div class="comment">💬 ${c.text}
+        ${user==='artist'?`<button onclick="addReply(${i},${ci})">↳</button>`:''}
+      </div>`;
+      c.replies.forEach(r=>{
+        html+=`<div class="reply">ARTIST ✔ ${r}</div>`;
+      })
+    })
+    html+=`<button onclick="addComment(${i})">댓글</button></div>`;
+    postList.innerHTML+=html;
   });
-  letterText.value="";
-}
 
-function loadLetters(){
-  if(role!=="artist")return;
-  db.collection("letters").orderBy("time","desc")
-  .onSnapshot(s=>{
-    letterList.innerHTML="";
-    s.forEach(d=>{
-      letterList.innerHTML+=`<div class="card">${d.data().text}</div>`;
-    });
-  });
+  chatBox.innerHTML='';
+  chats.forEach(c=>{
+    chatBox.innerHTML+=
+      `<div class="bubble ${c.me?'me':'other'}">${c.text}</div>`;
+  })
 }
 </script>
+
 </body>
 </html>
+
