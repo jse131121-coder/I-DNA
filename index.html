@@ -82,7 +82,6 @@ nav button{
 }
 .left{align-self:flex-start;background:#ffc1c1}
 .right{align-self:flex-end;background:#fff}
-.date{text-align:center;font-size:11px;opacity:.5}
 
 /* 로그인 */
 #login{
@@ -96,11 +95,12 @@ nav button{
 
 <body>
 
+<!-- 로그인 -->
 <div id="login">
   <div class="card" style="width:85%">
     <h3>LOGIN</h3>
-    <input id="email" placeholder="email">
-    <input id="pw" type="password" placeholder="password">
+    <input id="loginEmail" placeholder="email">
+    <input id="loginPw" type="password" placeholder="password">
     <button onclick="login()">로그인</button>
   </div>
 </div>
@@ -154,15 +154,26 @@ let chats=JSON.parse(localStorage.getItem('chats'))||[];
 let posts=JSON.parse(localStorage.getItem('posts'))||[];
 
 function login(){
-  if(email.value==='aini@house.com'&&pw.value==='1234') role='fan';
-  else if(email.value==='ahjin@house.com'&&pw.value==='01024773752') role='artist';
-  else return alert('로그인 실패');
-  loginDiv.style.display='none';
-  nav.classList.remove('hidden');
-  if(role==='artist'){
-    artistSetting.classList.remove('hidden');
-    artistName.value=artist.name;
+  const email=document.getElementById('loginEmail').value.trim();
+  const pw=document.getElementById('loginPw').value.trim();
+
+  if(email==='aini@house.com' && pw==='1234'){
+    role='fan';
+  }else if(email==='ahjin@house.com' && pw==='01024773752'){
+    role='artist';
+  }else{
+    alert('이메일 또는 비밀번호가 틀렸어요');
+    return;
   }
+
+  document.getElementById('login').style.display='none';
+  document.getElementById('nav').classList.remove('hidden');
+
+  if(role==='artist'){
+    document.getElementById('artistSetting').classList.remove('hidden');
+    document.getElementById('artistName').value=artist.name;
+  }
+
   show('home');
   render();
 }
@@ -178,6 +189,7 @@ function show(id){
 
 function uploadAvatar(input){
   const file=input.files[0];
+  if(!file) return;
   const reader=new FileReader();
   reader.onload=e=>{
     artist.avatar=e.target.result;
@@ -186,16 +198,21 @@ function uploadAvatar(input){
 }
 
 function saveArtist(){
-  artist.name=artistName.value;
+  artist.name=document.getElementById('artistName').value;
   localStorage.setItem('artist',JSON.stringify(artist));
   render();
 }
 
 function sendChat(){
-  if(!chatInput.value) return;
-  chats.push({role,text:chatInput.value,time:new Date().toLocaleString()});
+  const input=document.getElementById('chatInput');
+  if(!input.value) return;
+  chats.push({
+    role,
+    text:input.value,
+    time:new Date().toLocaleString()
+  });
   localStorage.setItem('chats',JSON.stringify(chats));
-  chatInput.value='';
+  input.value='';
   renderChat();
 }
 
@@ -205,7 +222,8 @@ function render(){
 }
 
 function renderChat(){
-  chatBox.innerHTML='';
+  const box=document.getElementById('chatBox');
+  box.innerHTML='';
   chats.forEach(c=>{
     const d=document.createElement('div');
     d.className='bubble '+(c.role==='artist'?'left':'right');
@@ -217,13 +235,13 @@ function renderChat(){
            </div>` : ''}
       ${c.text}
       <div class="small">${c.time}</div>`;
-    chatBox.appendChild(d);
+    box.appendChild(d);
   });
 }
 
 function newPost(){
   if(role!=='artist') return;
-  const text=prompt('내용');
+  const text=prompt('내용 입력');
   if(!text) return;
   posts.unshift({text,comments:[]});
   localStorage.setItem('posts',JSON.stringify(posts));
@@ -231,6 +249,7 @@ function newPost(){
 }
 
 function renderPosts(){
+  const postsEl=document.getElementById('posts');
   postsEl.innerHTML='';
   posts.forEach((p,i)=>{
     const d=document.createElement('div');
@@ -249,6 +268,7 @@ function renderPosts(){
 }
 
 function addComment(i,input){
+  if(!input.value) return;
   posts[i].comments.push(input.value);
   localStorage.setItem('posts',JSON.stringify(posts));
   renderPosts();
@@ -257,6 +277,3 @@ function addComment(i,input){
 
 </body>
 </html>
-
-
-
