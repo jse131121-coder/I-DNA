@@ -1,74 +1,59 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AND,JIN</title>
 
 <style>
 :root{
-  --pink:#ffb7b7;
-  --deep-pink:#ff8f8f;
-  --card:#ffffff;
-  --shadow:0 6px 18px rgba(0,0,0,.12);
-  --text:#333;
+  --pink:#ffd6e0;
+  --deep:#ff8fa3;
+  --white:#fff;
+  --shadow:0 6px 16px rgba(0,0,0,.15);
 }
-
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
   background:var(--pink);
-  color:var(--text);
 }
-
-/* ---------- 공통 ---------- */
 .hidden{display:none}
+.small{font-size:12px}
 .card{
-  background:var(--card);
+  background:var(--white);
   border-radius:16px;
+  padding:14px;
   box-shadow:var(--shadow);
-  padding:16px;
+  margin-bottom:12px;
 }
-.small{font-size:13px}
 button{
+  background:var(--deep);
   border:none;
-  border-radius:12px;
-  padding:10px 14px;
-  background:var(--deep-pink);
   color:#fff;
-  font-size:13px;
+  border-radius:12px;
+  padding:10px;
+  font-size:12px;
 }
 input,textarea{
   width:100%;
-  border:1px solid #ddd;
-  border-radius:10px;
   padding:10px;
-  font-size:13px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:12px;
 }
-
-/* ---------- 로그인 ---------- */
-#login{
-  position:fixed;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-#login .card{width:85%}
-
-/* ---------- 헤더 ---------- */
 header{
   padding:12px;
   text-align:center;
   font-weight:700;
 }
-
-/* ---------- 네비 ---------- */
+section{
+  padding:14px;
+  padding-bottom:90px;
+}
 nav{
   position:fixed;
-  bottom:0;
-  left:0; right:0;
+  bottom:0;left:0;right:0;
   background:#fff;
   display:flex;
   border-top:1px solid #eee;
@@ -78,54 +63,44 @@ nav button{
   background:none;
   color:#555;
 }
-
-/* ---------- 화면 ---------- */
-section{
-  padding:16px;
-  padding-bottom:80px;
-}
-
-/* ---------- 채팅 ---------- */
-.chat{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-.bubble{
-  max-width:75%;
-  padding:10px 12px;
-  border-radius:14px;
-  font-size:13px;
-  box-shadow:var(--shadow);
-}
-.left{align-self:flex-start;background:#ffd1d1}
-.right{align-self:flex-end;background:#fff}
-.meta{font-size:11px;opacity:.6;margin-top:4px}
-
-/* ---------- 커뮤니티 ---------- */
-.post img{width:100%;border-radius:12px;margin-top:8px}
-.comment{font-size:12px;margin-top:6px}
-.reply{margin-left:14px;color:#d14}
-
-/* ---------- 프사 ---------- */
 .avatar{
-  width:36px;height:36px;
+  width:34px;height:34px;
   border-radius:50%;
   background:#ccc;
   object-fit:cover;
 }
-.row{display:flex;gap:10px;align-items:center}
+.row{display:flex;align-items:center;gap:8px}
 
+/* 채팅 */
+.chat{display:flex;flex-direction:column;gap:8px}
+.bubble{
+  max-width:75%;
+  padding:10px;
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  font-size:12px;
+}
+.left{align-self:flex-start;background:#ffc1c1}
+.right{align-self:flex-end;background:#fff}
+.date{text-align:center;font-size:11px;opacity:.5}
+
+/* 로그인 */
+#login{
+  position:fixed;inset:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
 </style>
 </head>
+
 <body>
 
-<!-- 로그인 -->
 <div id="login">
-  <div class="card">
+  <div class="card" style="width:85%">
     <h3>LOGIN</h3>
-    <input id="email" placeholder="email"/>
-    <input id="pw" type="password" placeholder="password"/>
+    <input id="email" placeholder="email">
+    <input id="pw" type="password" placeholder="password">
     <button onclick="login()">로그인</button>
   </div>
 </div>
@@ -136,39 +111,64 @@ section{
   <div class="card">HOME</div>
 </section>
 
-<section id="community" class="hidden"></section>
+<section id="community" class="hidden">
+  <button onclick="newPost()">글쓰기</button>
+  <div id="posts"></div>
+</section>
 
 <section id="chat" class="hidden">
-  <div class="chat" id="chatBox"></div>
+  <div id="chatBox" class="chat"></div>
   <div class="row">
-    <input id="chatInput"/>
+    <input id="chatInput">
     <button onclick="sendChat()">전송</button>
   </div>
 </section>
 
-<section id="letter" class="hidden">
-  <textarea placeholder="편지 작성"></textarea>
+<section id="settings" class="hidden">
+  <div class="card">
+    <h4>설정</h4>
+
+    <div id="artistSetting" class="hidden">
+      <label class="small">아티스트 이름</label>
+      <input id="artistName">
+      <label class="small">프로필 이미지 업로드</label>
+      <input type="file" accept="image/*" onchange="uploadAvatar(this)">
+      <button onclick="saveArtist()">저장</button>
+    </div>
+
+    <button onclick="logout()">로그아웃</button>
+  </div>
 </section>
 
-<nav class="hidden" id="nav">
+<nav id="nav" class="hidden">
   <button onclick="show('home')">홈</button>
   <button onclick="show('community')">커뮤니티</button>
   <button onclick="show('chat')">채팅</button>
-  <button onclick="show('letter')">편지</button>
+  <button onclick="show('settings')">설정</button>
 </nav>
 
 <script>
-let role = null;
-let artist = {name:'AHJIN', avatar:null};
+let role=null;
+let artist=JSON.parse(localStorage.getItem('artist'))||{name:'AHJIN',avatar:null};
+let chats=JSON.parse(localStorage.getItem('chats'))||[];
+let posts=JSON.parse(localStorage.getItem('posts'))||[];
 
 function login(){
-  const e=email.value,p=pw.value;
-  if(e==='aini@house.com'&&p==='1234') role='fan';
-  else if(e==='ahjin@house.com'&&p==='01024773752') role='artist';
+  if(email.value==='aini@house.com'&&pw.value==='1234') role='fan';
+  else if(email.value==='ahjin@house.com'&&pw.value==='01024773752') role='artist';
   else return alert('로그인 실패');
-  loginBox.style.display='none';
+  loginDiv.style.display='none';
   nav.classList.remove('hidden');
+  if(role==='artist'){
+    artistSetting.classList.remove('hidden');
+    artistName.value=artist.name;
+  }
   show('home');
+  render();
+}
+
+function logout(){
+  location.reload();
 }
 
 function show(id){
@@ -176,18 +176,87 @@ function show(id){
   document.getElementById(id).classList.remove('hidden');
 }
 
+function uploadAvatar(input){
+  const file=input.files[0];
+  const reader=new FileReader();
+  reader.onload=e=>{
+    artist.avatar=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveArtist(){
+  artist.name=artistName.value;
+  localStorage.setItem('artist',JSON.stringify(artist));
+  render();
+}
+
 function sendChat(){
-  const box=document.getElementById('chatBox');
-  const div=document.createElement('div');
-  div.className='bubble '+(role==='artist'?'left':'right');
-  div.innerHTML=chatInput.value+
-    `<div class="meta">${new Date().toLocaleString()}</div>`;
-  box.appendChild(div);
+  if(!chatInput.value) return;
+  chats.push({role,text:chatInput.value,time:new Date().toLocaleString()});
+  localStorage.setItem('chats',JSON.stringify(chats));
   chatInput.value='';
+  renderChat();
+}
+
+function render(){
+  renderChat();
+  renderPosts();
+}
+
+function renderChat(){
+  chatBox.innerHTML='';
+  chats.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='bubble '+(c.role==='artist'?'left':'right');
+    d.innerHTML=`
+      ${c.role==='artist'
+        ? `<div class="row">
+             <div class="avatar">${artist.avatar?`<img src="${artist.avatar}" class="avatar">`:''}</div>
+             <b>${artist.name}</b>
+           </div>` : ''}
+      ${c.text}
+      <div class="small">${c.time}</div>`;
+    chatBox.appendChild(d);
+  });
+}
+
+function newPost(){
+  if(role!=='artist') return;
+  const text=prompt('내용');
+  if(!text) return;
+  posts.unshift({text,comments:[]});
+  localStorage.setItem('posts',JSON.stringify(posts));
+  renderPosts();
+}
+
+function renderPosts(){
+  postsEl.innerHTML='';
+  posts.forEach((p,i)=>{
+    const d=document.createElement('div');
+    d.className='card';
+    d.innerHTML=`
+      <div class="row">
+        <div class="avatar">${artist.avatar?`<img src="${artist.avatar}" class="avatar">`:''}</div>
+        <b>${artist.name}</b>
+      </div>
+      <p class="small">${p.text}</p>
+      ${p.comments.map(c=>`<div class="small">• ${c}</div>`).join('')}
+      <input placeholder="댓글" onkeydown="if(event.key==='Enter'){addComment(${i},this)}">
+    `;
+    postsEl.appendChild(d);
+  });
+}
+
+function addComment(i,input){
+  posts[i].comments.push(input.value);
+  localStorage.setItem('posts',JSON.stringify(posts));
+  renderPosts();
 }
 </script>
 
 </body>
 </html>
+
 
 
