@@ -1,105 +1,162 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>AINI</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AHJIN</title>
 
 <style>
 *{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont}
 body{
   margin:0;
-  background:#ffd6d6;
+  background:#ffd6de;
+  display:flex;
+  justify-content:center;
+}
+#app{
+  width:390px;
+  min-height:100vh;
+  background:#ffd6de;
+  position:relative;
 }
 .hidden{display:none}
 
-/* 로그인 팝업 */
-#loginModal{
+/* LOGIN */
+#login{
   position:fixed; inset:0;
   background:rgba(0,0,0,.4);
   display:flex; align-items:center; justify-content:center;
+  z-index:10;
 }
 #loginBox{
   background:#fff;
   padding:24px;
+  border-radius:20px;
   width:280px;
-  border-radius:18px;
   text-align:center;
 }
 #loginBox button{
-  width:100%; margin-top:10px;
-  padding:10px;
-  border:none; border-radius:12px;
-  background:#ff8a8a; color:#fff;
-  font-weight:bold;
+  width:100%;
+  margin-top:10px;
+  padding:12px;
+  border:none;
+  border-radius:14px;
+  background:#ff7f9f;
+  color:#fff;
+  font-weight:600;
 }
 
-/* 헤더 */
+/* HEADER */
 header{
   padding:14px;
-  background:#ffb3b3;
-  display:flex; justify-content:space-between; align-items:center;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
+.profile{
+  display:flex; align-items:center; gap:8px;
+}
+.avatar{
+  width:36px; height:36px;
+  border-radius:50%;
+  background:#ccc;
+  overflow:hidden;
+}
+.avatar img{width:100%;height:100%;object-fit:cover}
 .badge{
-  background:#000; color:#fff;
-  padding:4px 10px; border-radius:20px;
   font-size:12px;
+  background:#000;
+  color:#fff;
+  padding:2px 8px;
+  border-radius:10px;
 }
 
-/* 메인 */
-main{padding:14px 14px 70px}
+/* MAIN */
+main{padding:0 14px 80px}
 .card{
   background:#fff;
-  border-radius:16px;
+  border-radius:18px;
   padding:14px;
   margin-bottom:14px;
 }
 
-/* 커뮤니티 */
-.post{margin-bottom:16px}
+/* COMMUNITY */
 .comment{font-size:13px;margin-top:6px}
-.reply{margin-left:14px;color:#ff6b6b}
+.reply{margin-left:14px;color:#ff5f87;font-size:12px}
+.commentBox{
+  display:flex;
+  gap:6px;
+  margin-top:8px;
+}
+.commentBox input{
+  flex:1;
+  padding:8px;
+  border-radius:12px;
+  border:1px solid #ddd;
+}
 
-/* 채팅 */
-.chat{
-  background:#fff;
-  border-radius:16px;
-  padding:12px;
+/* CHAT */
+.chatBox{
   height:60vh;
   overflow-y:auto;
 }
+.date{
+  text-align:center;
+  font-size:12px;
+  margin:10px 0;
+}
+.msg{
+  display:flex;
+  margin:6px 0;
+}
+.msg.artist{justify-content:flex-start}
+.msg.fan{justify-content:flex-end}
 .bubble{
+  max-width:70%;
   padding:10px;
   border-radius:14px;
-  margin:6px 0;
-  max-width:80%;
 }
-.me{background:#ff8a8a;color:#fff;margin-left:auto}
-.other{background:#f2f2f2}
+.artist .bubble{
+  background:#fff;
+  border-top-left-radius:0;
+}
+.fan .bubble{
+  background:#ff7f9f;
+  color:#fff;
+  border-top-right-radius:0;
+}
+.name{font-size:11px;margin-bottom:2px}
 
-/* 입력 */
-.inputBox{
+/* INPUT */
+.inputBar{
   position:fixed;
-  bottom:60px; left:0; right:0;
-  display:flex; padding:10px;
+  bottom:60px;
+  width:390px;
+  display:flex;
+  padding:10px;
+  gap:6px;
 }
-.inputBox input{
-  flex:1; padding:10px;
-  border-radius:20px; border:none;
+.inputBar input{
+  flex:1;
+  padding:10px;
+  border-radius:20px;
+  border:none;
 }
-.inputBox button{
-  margin-left:8px;
-  background:#ff8a8a;
-  border:none; border-radius:20px;
-  padding:0 16px; color:#fff;
+.inputBar button{
+  padding:0 16px;
+  border:none;
+  border-radius:20px;
+  background:#ff7f9f;
+  color:#fff;
 }
 
-/* 하단 탭 */
+/* NAV */
 nav{
   position:fixed;
-  bottom:0; left:0; right:0;
+  bottom:0;
+  width:390px;
   display:flex;
-  background:#ffecec;
+  background:#ffe5ec;
 }
 nav button{
   flex:1;
@@ -111,46 +168,50 @@ nav button{
 </head>
 
 <body>
+<div id="app">
 
-<!-- 로그인 -->
-<div id="loginModal">
+<!-- LOGIN -->
+<div id="login">
   <div id="loginBox">
-    <h3>로그인</h3>
-    <button onclick="login('fan')">팬으로 로그인</button>
-    <button onclick="login('artist')">아티스트로 로그인</button>
+    <h3>LOGIN</h3>
+    <button onclick="login('fan')">팬 로그인</button>
+    <button onclick="login('artist')">아티스트 로그인</button>
   </div>
 </div>
 
 <header>
-  <div>AINI 💗</div>
-  <div id="role" class="badge"></div>
+  <div class="profile">
+    <div class="avatar" id="headerAvatar"></div>
+    <b id="headerName">AHJIN</b>
+    <span class="badge">✔</span>
+  </div>
 </header>
 
 <main>
-  <!-- 홈 -->
-  <section id="home" class="card">환영합니다!</section>
-
-  <!-- 커뮤니티 -->
-  <section id="community" class="hidden">
-    <div class="card">
-      <input id="postInput" placeholder="글 작성..." />
-      <button onclick="addPost()">등록</button>
-    </div>
-    <div id="postList"></div>
+  <!-- HOME -->
+  <section id="home" class="card">
+    <div class="avatar" style="width:80px;height:80px" id="homeAvatar"></div>
+    <h3 id="homeName">AHJIN</h3>
   </section>
 
-  <!-- 채팅 -->
+  <!-- COMMUNITY -->
+  <section id="community" class="hidden"></section>
+
+  <!-- CHAT -->
   <section id="chat" class="hidden">
-    <div class="chat" id="chatBox"></div>
-    <div class="inputBox">
-      <input id="chatInput" placeholder="메시지 입력"/>
-      <button onclick="sendChat()">send</button>
+    <div class="chatBox" id="chatBox"></div>
+    <div class="inputBar">
+      <input id="chatInput" placeholder="메시지 입력">
+      <button onclick="sendChat()">전송</button>
     </div>
   </section>
 
-  <!-- 편지 -->
-  <section id="letter" class="hidden">
-    <div class="card">💌 편지함 (연출용)</div>
+  <!-- SETTING -->
+  <section id="setting" class="hidden card">
+    <h3>아티스트 설정</h3>
+    <input id="nameInput" placeholder="이름 변경">
+    <input type="file" accept="image/*" onchange="uploadAvatar(this)">
+    <button onclick="saveProfile()">저장</button>
   </section>
 </main>
 
@@ -158,89 +219,123 @@ nav button{
   <button onclick="show('home')">홈</button>
   <button onclick="show('community')">커뮤니티</button>
   <button onclick="show('chat')">채팅</button>
-  <button onclick="show('letter')">편지</button>
+  <button onclick="show('setting')">설정</button>
 </nav>
 
-<script>
-let user = null;
-let posts = JSON.parse(localStorage.getItem('posts')||'[]');
-let chats = JSON.parse(localStorage.getItem('chats')||'[]');
+</div>
 
-function login(type){
-  user = type;
-  document.getElementById('role').innerText =
-    type === 'artist' ? 'ARTIST ✔' : 'FAN';
-  document.getElementById('loginModal').style.display='none';
-  render();
+<script>
+let role=null;
+let profile=JSON.parse(localStorage.getItem('profile'))||{
+  name:'AHJIN',avatar:null
+};
+let posts=JSON.parse(localStorage.getItem('posts'))||[];
+let chats=JSON.parse(localStorage.getItem('chats'))||[];
+
+function login(r){
+  role=r;
+  document.getElementById('login').style.display='none';
+  renderProfile();
+  renderCommunity();
+  renderChat();
 }
 
 function show(id){
-  document.querySelectorAll('main section')
-    .forEach(s=>s.classList.add('hidden'));
+  document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
 }
 
+function renderProfile(){
+  headerName.innerText=profile.name;
+  homeName.innerText=profile.name;
+  if(profile.avatar){
+    headerAvatar.innerHTML=`<img src="${profile.avatar}">`;
+    homeAvatar.innerHTML=`<img src="${profile.avatar}">`;
+  }
+}
+
+function uploadAvatar(input){
+  const file=input.files[0];
+  const reader=new FileReader();
+  reader.onload=e=>profile.avatar=e.target.result;
+  reader.readAsDataURL(file);
+}
+
+function saveProfile(){
+  profile.name=nameInput.value||profile.name;
+  localStorage.setItem('profile',JSON.stringify(profile));
+  renderProfile();
+}
+
+/* COMMUNITY */
+function renderCommunity(){
+  const c=document.getElementById('community');
+  c.innerHTML='';
+  if(role==='artist'){
+    c.innerHTML+=`
+    <div class="card">
+      <input id="postInput" placeholder="글 작성">
+      <button onclick="addPost()">등록</button>
+    </div>`;
+  }
+  posts.forEach((p,i)=>{
+    let html=`<div class="card">
+      <div class="profile">
+        <div class="avatar">${profile.avatar?`<img src="${profile.avatar}">`:''}</div>
+        <b>${profile.name}</b><span class="badge">✔</span>
+      </div>
+      <p>${p.text}</p>`;
+    p.comments.forEach((cmt,ci)=>{
+      html+=`<div class="comment">${cmt.text}</div>`;
+      cmt.replies.forEach(r=>{
+        html+=`<div class="reply">AHJIN: ${r}</div>`;
+      });
+    });
+    html+=`
+      <div class="commentBox">
+        <input placeholder="댓글 입력" id="c_${i}">
+        <button onclick="addComment(${i})">전송</button>
+      </div>
+    </div>`;
+    c.innerHTML+=html;
+  });
+}
+
 function addPost(){
-  const text = postInput.value;
-  if(!text) return;
-  posts.push({text,comments:[]});
+  posts.unshift({text:postInput.value,comments:[]});
   localStorage.setItem('posts',JSON.stringify(posts));
-  postInput.value='';
-  render();
+  renderCommunity();
 }
-
 function addComment(i){
-  const txt = prompt("댓글");
-  if(!txt) return;
-  posts[i].comments.push({text:txt,replies:[]});
-  save();
+  const input=document.getElementById('c_'+i);
+  posts[i].comments.push({text:input.value,replies:[]});
+  localStorage.setItem('posts',JSON.stringify(posts));
+  renderCommunity();
 }
 
-function addReply(p,c){
-  if(user!=='artist') return alert("아티스트만 가능");
-  const txt = prompt("대댓글");
-  posts[p].comments[c].replies.push(txt);
-  save();
-}
-
+/* CHAT */
 function sendChat(){
-  const t = chatInput.value;
-  if(!t) return;
-  chats.push({me:true,text:t});
+  chats.push({role,text:chatInput.value});
   localStorage.setItem('chats',JSON.stringify(chats));
   chatInput.value='';
-  render();
+  renderChat();
 }
-
-function save(){
-  localStorage.setItem('posts',JSON.stringify(posts));
-  render();
-}
-
-function render(){
-  postList.innerHTML='';
-  posts.forEach((p,i)=>{
-    let html=`<div class="card post">${p.text}`;
-    p.comments.forEach((c,ci)=>{
-      html+=`<div class="comment">💬 ${c.text}
-        ${user==='artist'?`<button onclick="addReply(${i},${ci})">↳</button>`:''}
-      </div>`;
-      c.replies.forEach(r=>{
-        html+=`<div class="reply">ARTIST ✔ ${r}</div>`;
-      })
-    })
-    html+=`<button onclick="addComment(${i})">댓글</button></div>`;
-    postList.innerHTML+=html;
-  });
-
+function renderChat(){
   chatBox.innerHTML='';
   chats.forEach(c=>{
-    chatBox.innerHTML+=
-      `<div class="bubble ${c.me?'me':'other'}">${c.text}</div>`;
-  })
+    chatBox.innerHTML+=`
+    <div class="msg ${c.role}">
+      ${c.role==='artist'?`
+      <div class="avatar">${profile.avatar?`<img src="${profile.avatar}">`:''}</div>`:''}
+      <div>
+        ${c.role==='artist'?`<div class="name">${profile.name}</div>`:''}
+        <div class="bubble">${c.text}</div>
+      </div>
+    </div>`;
+  });
 }
 </script>
-
 </body>
 </html>
+
 
