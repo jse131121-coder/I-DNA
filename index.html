@@ -6,68 +6,128 @@
 <title>AOUSE</title>
 
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+*{margin:0;padding:0;box-sizing:border-box}
 body{
-  background:#ffdbe7;
   font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
-  display:flex;justify-content:center;
+  background:#f7dbe6;
+  display:flex;
+  justify-content:center;
 }
 #app{
-  width:390px;min-height:100vh;
-  background:#ffeef4;padding-bottom:70px;
+  width:390px;
+  min-height:100vh;
+  background:#fdeff4;
+  padding-bottom:70px;
 }
 
-/* NAV */
+/* ===== NAV ===== */
 nav{
-  position:fixed;bottom:0;width:390px;height:60px;
-  background:#fff;display:flex;border-top:1px solid #ddd;
+  position:fixed;
+  bottom:0;
+  width:390px;
+  height:60px;
+  background:#fff;
+  display:flex;
+  border-top:1px solid #ddd;
 }
-nav button{flex:1;border:none;background:none;font-size:11px}
+nav button{
+  flex:1;
+  border:none;
+  background:none;
+  font-size:11px;
+}
 
-/* PAGE */
-.page{display:none;padding:15px}
+/* ===== PAGE ===== */
+.page{display:none;padding:14px}
 .page.active{display:block}
 
-/* LOGIN */
+/* ===== LOGIN ===== */
 #loginModal{
-  position:fixed;inset:0;background:rgba(0,0,0,.45);
-  display:flex;align-items:center;justify-content:center;z-index:99
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.45);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:100;
 }
 #loginBox{
-  width:280px;background:#fff;border-radius:14px;padding:20px
+  width:280px;
+  background:#fff;
+  border-radius:14px;
+  padding:20px;
 }
-#loginBox input{width:100%;padding:8px;margin-bottom:10px}
+#loginBox h3{text-align:center;margin-bottom:10px}
+#loginBox input{
+  width:100%;
+  padding:8px;
+  margin-bottom:10px;
+}
 
-/* BUTTON */
+/* ===== COMMON ===== */
 button{
-  background:#ffb3c7;border:none;padding:6px 10px;
-  border-radius:10px;font-size:12px
+  background:#f4b6c8;
+  border:none;
+  padding:6px 10px;
+  border-radius:10px;
+  font-size:12px;
+}
+.small{font-size:11px;color:#777}
+hr{border:none;border-top:1px solid #eee;margin:8px 0}
+
+/* ===== POST ===== */
+.post{
+  background:#fff;
+  border-radius:14px;
+  padding:10px;
+  margin-bottom:12px;
+}
+.post img{
+  width:100%;
+  border-radius:10px;
+  margin-top:6px;
+}
+.post .meta{
+  display:flex;
+  justify-content:space-between;
+  font-size:11px;
+  color:#666;
 }
 
-/* CHAT */
-.chat{display:flex;margin-bottom:6px}
-.chat.artist{justify-content:flex-start}
-.chat.fan{justify-content:flex-end}
-.bubble{
-  max-width:70%;padding:8px;font-size:12px;
-  border-radius:14px;box-shadow:0 2px 6px rgba(0,0,0,.15)
+/* ===== COMMENT ===== */
+.comment{
+  font-size:12px;
+  margin-top:6px;
 }
-.artist .bubble{background:#ffc0cb}
-.fan .bubble{background:#fff}
+.reply{
+  background:#f9e3ec;
+  padding:6px;
+  border-radius:8px;
+  font-size:11px;
+  margin-top:4px;
+}
+
+/* ===== CHAT ===== */
+.chat{display:flex;margin-bottom:6px}
+.chat.admin{justify-content:flex-start}
+.chat.user{justify-content:flex-end}
+.bubble{
+  max-width:70%;
+  padding:8px;
+  font-size:12px;
+  border-radius:14px;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
+.admin .bubble{background:#f6b3c7}
+.user .bubble{background:#fff}
 .date{font-size:10px;color:#777;margin-top:2px}
 
-/* POST */
-.post{
-  background:#fff;border-radius:14px;padding:10px;margin-bottom:12px
-}
-.post img{width:100%;border-radius:10px;margin-top:6px}
-.comment{font-size:12px;margin-top:6px}
-
-/* PROFILE */
+/* ===== PROFILE ===== */
 .profile{text-align:center}
 .profile img{
-  width:80px;height:80px;border-radius:50%;
-  background:#ccc;margin-bottom:10px
+  width:80px;height:80px;
+  border-radius:50%;
+  background:#ccc;
+  margin-bottom:10px;
 }
 </style>
 </head>
@@ -85,25 +145,33 @@ button{
   </div>
 </div>
 
-<div id="home" class="page active"><h3>Home</h3></div>
+<!-- HOME -->
+<div id="home" class="page active">
+  <h3>AOUSE</h3>
+  <p class="small">익명 커뮤니티</p>
+</div>
 
+<!-- COMMUNITY -->
 <div id="community" class="page">
   <button onclick="openPost()">글쓰기</button>
   <div id="postList"></div>
 </div>
 
+<!-- CHAT -->
 <div id="chat" class="page">
   <div id="chatBox"></div>
   <input id="chatInput">
   <button onclick="sendChat()">보내기</button>
 </div>
 
+<!-- LETTER -->
 <div id="letter" class="page">
-  <textarea id="letterText"></textarea>
+  <textarea id="letterText" placeholder="편지 쓰기"></textarea>
   <button onclick="sendLetter()">보내기</button>
   <div id="letterList"></div>
 </div>
 
+<!-- SETTING (ADMIN) -->
 <div id="setting" class="page">
   <div class="profile">
     <img id="profileImg">
@@ -124,108 +192,139 @@ button{
 </div>
 
 <script>
+/* ===== STATE ===== */
 const store=localStorage;
 let state=JSON.parse(store.aouse||"{}");
-
-/* INIT */
-if(state.user){
-  loginModal.style.display="none";
-}else{
-  state={posts:[],chats:[],letters:[],user:null}
+if(!state.user){
+  state={user:null,posts:[],chats:[],letters:[]};
 }
 
-/* LOGIN */
+/* ===== LOGIN ===== */
 function login(){
-  if(email.value==="aini@house.com"&&pw.value==="1234"){
-    state.user={role:"fan",name:"FAN"};
-  }else if(email.value==="ahjin@house.com"&&pw.value==="01024773752"){
-    state.user={role:"artist",name:"AHJIN",img:""};
-  }else return alert("실패");
-  save();loginModal.style.display="none";renderAll();
+  if(email.value==="user@aouse.com"&&pw.value==="1234"){
+    state.user={role:"user",name:"익명"};
+  }else if(email.value==="admin@aouse.com"&&pw.value==="admin1234"){
+    state.user={role:"admin",name:"AOUSE"};
+  }else return alert("로그인 실패");
+  save();
+  loginModal.style.display="none";
+  renderAll();
 }
 
-/* SAVE */
+/* ===== SAVE ===== */
 function save(){store.aouse=JSON.stringify(state)}
 
-/* NAV */
+/* ===== NAV ===== */
 function show(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
 
-/* CHAT */
+/* ===== COMMUNITY ===== */
+function openPost(){
+  const text=prompt("내용");
+  if(!text)return;
+  state.posts.unshift({
+    text,
+    img:null,
+    date:new Date().toLocaleString(),
+    comments:[],
+    reply:null
+  });
+  save();renderPosts();
+}
+
+function renderPosts(){
+  postList.innerHTML="";
+  state.posts.forEach((p,i)=>{
+    const d=document.createElement("div");
+    d.className="post";
+    d.innerHTML=`
+      <div class="meta">
+        <span>익명</span>
+        <span>${p.date}</span>
+      </div>
+      <p>${p.text}</p>
+      ${p.reply?`<div class="reply"><b>운영자</b><br>${p.reply}</div>`:""}
+      <hr>
+      <input placeholder="댓글" onkeydown="if(event.key==='Enter')addComment(${i},this)">
+      ${p.comments.map((c,ci)=>`
+        <div class="comment">
+          ${c}
+          ${state.user.role==="admin"?`<button onclick="reply(${i})">답변</button>`:""}
+        </div>`).join("")}
+    `;
+    postList.appendChild(d);
+  });
+}
+
+function addComment(i,input){
+  state.posts[i].comments.push(input.value);
+  input.value="";
+  save();renderPosts();
+}
+
+function reply(i){
+  const r=prompt("운영자 답변");
+  if(!r)return;
+  state.posts[i].reply=r;
+  save();renderPosts();
+}
+
+/* ===== CHAT ===== */
 function sendChat(){
   state.chats.push({
     role:state.user.role,
     text:chatInput.value,
     date:new Date().toLocaleString()
   });
-  chatInput.value="";save();renderChat();
+  chatInput.value="";
+  save();renderChat();
 }
 function renderChat(){
   chatBox.innerHTML="";
   state.chats.forEach(c=>{
-    const d=document.createElement('div');
+    const d=document.createElement("div");
     d.className="chat "+c.role;
     d.innerHTML=`<div class="bubble">${c.text}<div class="date">${c.date}</div></div>`;
     chatBox.appendChild(d);
   });
 }
 
-/* COMMUNITY */
-function openPost(){
-  const t=prompt("내용");
-  if(!t)return;
-  state.posts.unshift({
-    text:t,
-    img:null,
-    author:state.user.name,
-    date:new Date().toLocaleString(),
-    comments:[]
-  });
-  save();renderPosts();
-}
-function renderPosts(){
-  postList.innerHTML="";
-  state.posts.forEach((p,i)=>{
-    const d=document.createElement('div');
-    d.className="post";
-    d.innerHTML=`<b>${p.author}</b><div class="date">${p.date}</div><p>${p.text}</p>`;
-    postList.appendChild(d);
-  });
-}
-
-/* LETTER */
+/* ===== LETTER ===== */
 function sendLetter(){
   state.letters.push({text:letterText.value,date:new Date().toLocaleString()});
-  letterText.value="";save();renderLetters();
+  letterText.value="";
+  save();renderLetters();
 }
 function renderLetters(){
   letterList.innerHTML="";
   state.letters.forEach(l=>{
-    const d=document.createElement('div');
+    const d=document.createElement("div");
     d.innerHTML=`${l.text}<div class="date">${l.date}</div>`;
     letterList.appendChild(d);
   });
 }
 
-/* PROFILE */
+/* ===== PROFILE (ADMIN) ===== */
 function uploadProfile(e){
   const r=new FileReader();
-  r.onload=()=>{state.user.img=r.result;profileImg.src=r.result;save()}
+  r.onload=()=>{profileImg.src=r.result;save()}
   r.readAsDataURL(e.target.files[0]);
 }
 function saveProfile(){
-  state.user.name=nameInput.value;save();alert("저장됨");
+  state.user.name=nameInput.value;
+  save();alert("저장됨");
 }
 
-/* RENDER ALL */
+/* ===== RENDER ===== */
 function renderAll(){
-  renderChat();renderPosts();renderLetters();
-  if(state.user?.img)profileImg.src=state.user.img;
-  nameInput.value=state.user?.name||"";
+  renderPosts();renderChat();renderLetters();
 }
-renderAll();
+if(state.user){
+  loginModal.style.display="none";
+  renderAll();
+}
 </script>
 </body>
 </html>
